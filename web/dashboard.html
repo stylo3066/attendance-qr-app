@@ -853,7 +853,24 @@
     </div> <!-- Cierre del container principal -->
 
     <script>
-    const SERVER_URL = window.location.origin;
+    // Permitir configurar el backend vía querystring (?server=URL) o localStorage
+    // Uso: https://tu-usuario.github.io/attendance-qr-app/attendance_qr/web/dashboard.html?server=https://tu-backend.vercel.app
+    (function(){
+        try{
+            const qs = new URLSearchParams(window.location.search);
+            const qServer = qs.get('server');
+            if(qServer){
+                localStorage.setItem('SERVER_URL', qServer);
+            }
+        }catch(_){/* ignore */}
+    })();
+    const SERVER_URL = (function(){
+        try{
+            const saved = localStorage.getItem('SERVER_URL');
+            if (saved && /^https?:\/\//i.test(saved)) return saved;
+        }catch(_){/* ignore */}
+        return window.location.origin;
+    })();
         let allAttendanceData = [];
         let filteredData = [];
         

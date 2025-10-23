@@ -236,6 +236,31 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
                       ],
                     ),
                   ),
+                  // Acciones rápidas de configuración
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _openSettingsDialog,
+                          icon: const Icon(Icons.settings),
+                          label: const Text('Configurar sincronización'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.indigo,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _testConnection,
+                          icon: const Icon(Icons.wifi),
+                          label: const Text('Probar conexión'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
 
                   // Botón de scanner
                   SizedBox(
