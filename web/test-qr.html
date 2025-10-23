@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QR de Prueba - Asistencia Profesores</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <script src="/vendor/qrcode.min.js"></script>
-  <script src="/vendor/qrcodejs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs2@0.0.2/qrcode.min.js"></script>
   <style>
     :root{ --brand:#0f172a; --gold:#c5a351; }
     body{ font-family:'Inter',system-ui,sans-serif; background:#f8fafc; margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; }
@@ -21,23 +21,39 @@
     .badge{ background:#ecfeff; color:#0369a1; border:1px solid #bae6fd; padding:2px 8px; border-radius:999px; font-size:.8rem }
   </style>
   <script>
+    // Datos de profesores de demostración
+    const DEMO_PROFESSORS = [
+      { id: "PROF001", nombre: "María", apellido: "González", materia: "Matemáticas" },
+      { id: "PROF002", nombre: "Juan Carlos", apellido: "Rodríguez", materia: "Historia" },
+      { id: "PROF003", nombre: "Ana Lucia", apellido: "Torres", materia: "Ciencias" },
+      { id: "PROF004", nombre: "Carlos", apellido: "Mendoza", materia: "Literatura" },
+      { id: "PROF005", nombre: "Patricia", apellido: "Sánchez", materia: "Educación Física" },
+      { id: "PROF006", nombre: "Roberto", apellido: "García", materia: "Inglés" },
+      { id: "PROF007", nombre: "Elena", apellido: "Martínez", materia: "Arte" },
+      { id: "PROF008", nombre: "Miguel", apellido: "López", materia: "Música" }
+    ];
+    
     const api = `${window.location.origin}/api`;
     async function loadProfessors(){
       const sel = document.getElementById('prof');
       try{
+        // Intentar cargar del servidor primero
         const res = await fetch(`${api}/professors`);
         const list = await res.json();
         sel.innerHTML = list.map(p=>`<option value="${p.id}">${p.id} — ${p.nombre} ${p.apellido} (${p.materia})</option>`).join('');
         if(list.length){ renderQR(list[0].id); }
       }catch(e){
-        sel.innerHTML = '<option>ERROR cargando profesores</option>';
-        console.error('Error cargando profesores', e);
+        // Si falla, usar datos de demostración
+        console.log('Usando datos de demostración (servidor no disponible)');
+        sel.innerHTML = DEMO_PROFESSORS.map(p=>`<option value="${p.id}">${p.id} — ${p.nombre} ${p.apellido} (${p.materia})</option>`).join('');
+        if(DEMO_PROFESSORS.length){ renderQR(DEMO_PROFESSORS[0].id); }
       }
     }
     async function renderQR(text){
       const box = document.getElementById('qr');
       box.innerHTML = '';
-      // Intento A: servidor genera PNG (más robusto)
+      
+      // Intento A: servidor genera PNG (si está disponible)
       try {
         const img = document.createElement('img');
         img.alt = 'QR';
@@ -47,33 +63,77 @@
         const ok = await new Promise((resolve) => {
           img.onload = () => resolve(true);
           img.onerror = () => resolve(false);
-          setTimeout(() => resolve(false), 3000);
+          setTimeout(() => resolve(false), 2000);
         });
         if (ok) {
           box.appendChild(img);
+          document.getElementById('sample').textContent = text;
+          return;
         }
       } catch {}
 
-      // Intento B: API QRCode.toCanvas (paquete qrcode)
-      if (!box.firstChild && window.QRCode && typeof window.QRCode.toCanvas === 'function') {
+      // Intento B: qrcode.js con toCanvas (librería más robusta)
+      if (window.QRCode && window.QRCode.toCanvas) {
         const canvas = document.createElement('canvas');
         try {
-          await window.QRCode.toCanvas(canvas, text, { width: 260, margin: 2 });
+          await window.QRCode.toCanvas(canvas, text, { 
+            width: 260, 
+            margin: 2,
+            color: {
+              dark: '#000000',
+              light: '#FFFFFF'
+            }
+          });
           box.appendChild(canvas);
-        } catch {}
+          document.getElementById('sample').textContent = text;
+          return;
+        } catch (e) {
+          console.log('Error con QRCode.toCanvas:', e);
+        }
       }
 
-      // Intento C: qrcodejs (constructor)
-      if (!box.firstChild && typeof window.QRCode === 'function') {
+      // Intento C: qrcodejs2 (constructor)
+      if (window.QRCode && typeof window.QRCode === 'function') {
         try {
-          new window.QRCode(box, { text, width: 260, height: 260 });
-        } catch {}
+          box.innerHTML = '<div id="qrcode-container"></div>';
+          const container = box.querySelector('#qrcode-container');
+          new window.QRCode(container, { 
+            text: text, 
+            width: 260, 
+            height: 260,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: window.QRCode.CorrectLevel.M
+          });
+          document.getElementById('sample').textContent = text;
+          return;
+        } catch (e) {
+          console.log('Error con QRCode constructor:', e);
+        }
       }
 
-      if (!box.firstChild) {
-        box.innerHTML = '<div style="color:#b91c1c">Error generando QR. Revisa la conexión y vuelve a intentar.</div>';
-      }
-      document.getElementById('sample').textContent = text;
+      // Intento D: Usar API externa como fallback
+      try {
+        const img = document.createElement('img');
+        img.alt = 'QR Code';
+        img.width = 260;
+        img.height = 260;
+        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(text)}`;
+        const ok = await new Promise((resolve) => {
+          img.onload = () => resolve(true);
+          img.onerror = () => resolve(false);
+          setTimeout(() => resolve(false), 5000);
+        });
+        if (ok) {
+          box.appendChild(img);
+          document.getElementById('sample').textContent = text;
+          return;
+        }
+      } catch {}
+
+      // Si todo falla
+      box.innerHTML = '<div style="color:#b91c1c; text-align:center; padding:20px;">❌ Error generando QR<br><small>Verifica tu conexión a internet</small></div>';
+      document.getElementById('sample').textContent = text || '—';
     }
     function onGenerate(){
       const id = document.getElementById('prof').value || 'PROF_001';
