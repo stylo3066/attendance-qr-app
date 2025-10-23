@@ -735,6 +735,10 @@
                         <i class="fas fa-mobile-alt"></i>
                         Cargar QR de la App
                     </button>
+                    <button class="btn-info" onclick="syncWithServer()" style="background: #3b82f6;">
+                        <i class="fas fa-sync"></i>
+                        Sincronizar Servidor
+                    </button>
                     <button class="btn-danger" onclick="clearDatabase()">
                         <i class="fas fa-trash"></i>
                         Limpiar DB
@@ -1090,7 +1094,26 @@
 
     async function loadData(showMessage = false) {
             try {
-                // Intentar cargar datos del servidor
+                // Primero intentar cargar archivo local del servidor
+                try {
+                    const localResponse = await fetch('./live-attendance.json');
+                    if (localResponse.ok) {
+                        const localData = await localResponse.json();
+                        if (localData.length > 0) {
+                            allAttendanceData = localData;
+                            console.log('✅ Loaded live data from server:', localData.length, 'records');
+                            filteredData = [...allAttendanceData];
+                            updateStats();
+                            renderTable();
+                            if (showMessage) alert('✅ Datos actualizados desde servidor local');
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.log('📁 Local file not available, trying server API...');
+                }
+                
+                // Si no hay archivo local, intentar cargar datos del servidor API
                 const response = await fetch(`${SERVER_URL}/api/attendance`);
                 const prev = allAttendanceData || [];
                 allAttendanceData = await response.json();
@@ -1469,6 +1492,27 @@
             renderTable();
             
             alert('✅ Registros QR de la app cargados correctamente!\n\n📱 Franco Andree - 2 registros\n🕐 Entrada: 07:27:20\n🕑 Salida: 07:27:35');
+        }
+
+        // Función para sincronizar con el servidor en tiempo real
+        async function syncWithServer() {
+            try {
+                // Intentar cargar archivo generado por el servidor local
+                const response = await fetch('./live-attendance.json?' + Date.now()); // Cache bust
+                if (response.ok) {
+                    const serverData = await response.json();
+                    allAttendanceData = serverData;
+                    filteredData = [...allAttendanceData];
+                    updateStats();
+                    renderTable();
+                    alert(`✅ Sincronizado! ${serverData.length} registros cargados desde servidor local`);
+                } else {
+                    throw new Error('Archivo no disponible');
+                }
+            } catch (error) {
+                alert('⚠️ No se pudo sincronizar con el servidor local.\n\nAsegúrate de que:\n1. El servidor local esté corriendo\n2. Los archivos se estén generando correctamente');
+                console.error('Sync error:', error);
+            }
         }
 
         // Auto-actualizar cada 10 segundos

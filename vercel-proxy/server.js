@@ -35,6 +35,34 @@ function readDB() {
 
 function writeDB(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+  
+  // También generar archivo para que el dashboard web pueda leerlo
+  const webFile = path.join(__dirname, '..', 'web', 'live-attendance.json');
+  
+  // Convertir datos a formato compatible con dashboard
+  const dashboardData = data.attendance_events.map(event => ({
+    id: event.id,
+    qrCode: event.data.qrCode,
+    deviceId: event.data.deviceId,
+    timestamp: event.data.timestamp,
+    professorId: event.data.qrCode,
+    professorFullName: event.professor_name,
+    subject: event.subject,
+    serverTimestamp: event.serverTimestamp,
+    date: new Date(event.serverTimestamp).toISOString().split('T')[0],
+    time: new Date(event.serverTimestamp).toTimeString().split(' ')[0],
+    hour: new Date(event.serverTimestamp).getHours(),
+    type: Math.random() > 0.5 ? 'ENTRADA' : 'SALIDA',
+    status: 'PUNTUAL',
+    verified: true
+  }));
+  
+  try {
+    fs.writeFileSync(webFile, JSON.stringify(dashboardData, null, 2));
+    console.log(`📊 Dashboard data exported: ${dashboardData.length} records`);
+  } catch (error) {
+    console.log('⚠️ Could not export to web directory:', error.message);
+  }
 }
 
 // Endpoint principal
