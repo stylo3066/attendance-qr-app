@@ -3,6 +3,7 @@ class AttendanceAPI {
   constructor() {
     this.baseKey = 'attendance_mock_';
     this.professors = this.loadProfessors();
+    this.initializeDemoData();
   }
   
   loadProfessors() {
@@ -86,6 +87,52 @@ class AttendanceAPI {
   // Simular GET /health
   getHealth() {
     return { status: 'ok', timestamp: new Date().toISOString(), mode: 'github-pages-mock' };
+  }
+  
+  // Inicializar con datos de demostración
+  initializeDemoData() {
+    const existingData = this.getAttendance();
+    if (existingData.length === 0) {
+      // Crear algunos registros de demostración
+      const today = new Date();
+      const demoRecords = [
+        {
+          id: Date.now().toString(),
+          qrCode: '47045355',
+          deviceId: 'demo-device-1',
+          timestamp: new Date(today.getTime() - 3600000).toISOString(), // 1 hora atrás
+          professorId: '47045355',
+          professorFullName: 'ALOCILLA FERNANDEZ, FRANCO ANDREE',
+          subject: 'Matemática',
+          serverTimestamp: new Date(today.getTime() - 3600000).toISOString(),
+          date: today.toISOString().split('T')[0],
+          time: new Date(today.getTime() - 3600000).toTimeString().split(' ')[0],
+          hour: today.getHours() - 1,
+          type: 'ENTRADA',
+          status: 'PUNTUAL',
+          verified: true
+        },
+        {
+          id: (Date.now() + 1).toString(),
+          qrCode: '40770563',
+          deviceId: 'demo-device-2',
+          timestamp: new Date(today.getTime() - 1800000).toISOString(), // 30 min atrás
+          professorId: '40770563',
+          professorFullName: 'CANO AVILA, ROCIO PILAR',
+          subject: 'Primaria',
+          serverTimestamp: new Date(today.getTime() - 1800000).toISOString(),
+          date: today.toISOString().split('T')[0],
+          time: new Date(today.getTime() - 1800000).toTimeString().split(' ')[0],
+          hour: today.getHours(),
+          type: 'ENTRADA',
+          status: 'TARDANZA',
+          verified: true
+        }
+      ];
+      
+      localStorage.setItem(this.baseKey + 'records', JSON.stringify(demoRecords));
+      console.log('📊 Datos de demostración inicializados');
+    }
   }
 }
 
