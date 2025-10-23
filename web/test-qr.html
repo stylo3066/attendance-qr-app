@@ -202,16 +202,47 @@
     }
   </style>
   <script>
-    // Datos de profesores de demostración
-    const DEMO_PROFESSORS = [
-      { id: "PROF001", nombre: "María", apellido: "González", materia: "Matemáticas" },
-      { id: "PROF002", nombre: "Juan Carlos", apellido: "Rodríguez", materia: "Historia" },
-      { id: "PROF003", nombre: "Ana Lucia", apellido: "Torres", materia: "Ciencias" },
-      { id: "PROF004", nombre: "Carlos", apellido: "Mendoza", materia: "Literatura" },
-      { id: "PROF005", nombre: "Patricia", apellido: "Sánchez", materia: "Educación Física" },
-      { id: "PROF006", nombre: "Roberto", apellido: "García", materia: "Inglés" },
-      { id: "PROF007", nombre: "Elena", apellido: "Martínez", materia: "Arte" },
-      { id: "PROF008", nombre: "Miguel", apellido: "López", materia: "Música" }
+    // Profesores reales - Institución Educativa Antonia Moreno de Cáceres N.º 5090
+    const REAL_PROFESSORS = [
+      // PRIMARIA
+      { id: "40770563", nombre: "ROCIO PILAR", apellido: "CANO AVILA", nivel: "Primaria", materia: "Primaria" },
+      { id: "42029091", nombre: "JANNETH CARLA", apellido: "CHAMBI TORRES", nivel: "Primaria", materia: "Primaria" },
+      { id: "45649663", nombre: "JESSAMINE FIORELLA", apellido: "CORREA ROJAS", nivel: "Primaria", materia: "Primaria" },
+      { id: "10301512", nombre: "NILO", apellido: "DELGADO HUAMAN", nivel: "Primaria", materia: "Primaria" },
+      { id: "43228354", nombre: "YULIANA GLADYS", apellido: "ESPINOZA GIVERA", nivel: "Primaria", materia: "Primaria" },
+      { id: "10617994", nombre: "ROSARIO AMPARO", apellido: "LA TORRE DE LA CRUZ", nivel: "Primaria", materia: "Primaria" },
+      { id: "40839904", nombre: "JANET PAOLA", apellido: "LEYTON CURO", nivel: "Primaria", materia: "Primaria" },
+      { id: "41438400", nombre: "KARLA ELIZABETH", apellido: "LEYTON CURO", nivel: "Primaria", materia: "Primaria" },
+      { id: "41686698", nombre: "MARIA VANESSA", apellido: "MOGOLLON VITE DE COLLAZOS", nivel: "Primaria", materia: "Primaria" },
+      { id: "21797763", nombre: "LUCY SMITH", apellido: "ORTIZ SALVADOR", nivel: "Primaria", materia: "Primaria" },
+      { id: "45049341", nombre: "NANCY ROXANA", apellido: "TRUJILLO YANAC", nivel: "Primaria", materia: "Primaria" },
+      { id: "48070275", nombre: "KELLY JOHANA", apellido: "VITE DONAYRE", nivel: "Primaria", materia: "Primaria" },
+      { id: "43170874", nombre: "ROXANA BETTZABE", apellido: "ZAMATA GALVEZ", nivel: "Primaria", materia: "Primaria" },
+      { id: "40806877", nombre: "MIRIAM", apellido: "RAMOS AQUINO", nivel: "Primaria", materia: "Primaria" },
+      
+      // SECUNDARIA
+      { id: "70844830", nombre: "MILAGROS JEANETTE", apellido: "ALBINES VERA", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "47045355", nombre: "FRANCO ANDREE", apellido: "ALOCILLA FERNANDEZ", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "40524097", nombre: "BANESA ALEHLI", apellido: "ARROYO QUISPE", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "44725551", nombre: "KRISTYNA LUZ", apellido: "BARRANTES ESPINOZA", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "25691722", nombre: "DAVID ALBERTO", apellido: "CASTRO FALCON", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "10530826", nombre: "MARIA LUZ", apellido: "CAZORLA COSIO", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "76932209", nombre: "DENIS ANDERS", apellido: "CRUZ DIAZ", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "9366551", nombre: "JESUS BELARMINO", apellido: "GALARZA HUAYLINOS", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "25787562", nombre: "HADY ELIZABETH", apellido: "HUARCAYA GARCIA", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "10047312", nombre: "ANA CRISTINA", apellido: "LAPA MONTERO", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "25584254", nombre: "MARIA ANGELICA", apellido: "QUINO ANTICONA", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "43203871", nombre: "ANGELICA GISELLE", apellido: "RONDINEL BYTTON", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "9747802", nombre: "ABELIA BENY", apellido: "SABRERA AYQUIPA", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "25788971", nombre: "BENJAMIN JESUS", apellido: "SALAS RODRIGUEZ", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "45102910", nombre: "JOSE LUIS", apellido: "SILVESTRE TORNERO", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "41171952", nombre: "ARTURO RUBEN", apellido: "SOSA CERVANTES", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "40734711", nombre: "ROBERT WILLIAMS", apellido: "SULLCA CERNA", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "40037169", nombre: "JENNYFERR", apellido: "VALENZUELA CORDOVA", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "42039397", nombre: "MIRIAM YANIRA", apellido: "VELASQUEZ TORRES", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "40489916", nombre: "MIRIAM CECILIA", apellido: "SANCHEZ GUERRERO", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "42050691", nombre: "MONICA ROSALIA", apellido: "TACUCHI ROJAS", nivel: "Secundaria", materia: "Secundaria" },
+      { id: "42908368", nombre: "SEGUNDO RAMOS", apellido: "BANCES RIOJAS", nivel: "Secundaria", materia: "Secundaria" }
     ];
     
     const api = `${window.location.origin}/api`;
@@ -224,10 +255,31 @@
         sel.innerHTML = list.map(p=>`<option value="${p.id}">${p.id} — ${p.nombre} ${p.apellido} (${p.materia})</option>`).join('');
         if(list.length){ renderQR(list[0].id); }
       }catch(e){
-        // Si falla, usar datos de demostración
-        console.log('Usando datos de demostración (servidor no disponible)');
-        sel.innerHTML = DEMO_PROFESSORS.map(p=>`<option value="${p.id}">${p.id} — ${p.nombre} ${p.apellido} (${p.materia})</option>`).join('');
-        if(DEMO_PROFESSORS.length){ renderQR(DEMO_PROFESSORS[0].id); }
+        // Si falla, usar datos reales de la institución
+        console.log('Usando datos reales de la institución (servidor no disponible)');
+        
+        // Agrupar por nivel y ordenar
+        const primaria = REAL_PROFESSORS.filter(p => p.nivel === 'Primaria').sort((a,b) => a.apellido.localeCompare(b.apellido));
+        const secundaria = REAL_PROFESSORS.filter(p => p.nivel === 'Secundaria').sort((a,b) => a.apellido.localeCompare(b.apellido));
+        
+        let options = '<option value="">-- Seleccione un profesor --</option>';
+        
+        if(primaria.length > 0) {
+          options += '<optgroup label="🎒 PRIMARIA">';
+          options += primaria.map(p=>`<option value="${p.id}">${p.id} — ${p.apellido}, ${p.nombre}</option>`).join('');
+          options += '</optgroup>';
+        }
+        
+        if(secundaria.length > 0) {
+          options += '<optgroup label="🎓 SECUNDARIA">';
+          options += secundaria.map(p=>`<option value="${p.id}">${p.id} — ${p.apellido}, ${p.nombre}</option>`).join('');
+          options += '</optgroup>';
+        }
+        
+        sel.innerHTML = options;
+        
+        // Generar QR del primer profesor por defecto
+        if(REAL_PROFESSORS.length){ renderQR(REAL_PROFESSORS[0].id); }
       }
     }
     function renderQR(text) {
