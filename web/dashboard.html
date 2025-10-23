@@ -449,6 +449,85 @@
         .professor-info{ display:flex; flex-direction:column; }
         .professor-info small{ color:#64748b; }
         .subject-tag{ background:#eef2ff; color:#3730a3; border:1px solid #c7d2fe; padding:6px 10px; border-radius:999px; font-size:.85rem; font-weight:600; }
+        .type-badge, .aula-badge, .status-badge { 
+            padding: 6px 10px; 
+            border-radius: 999px; 
+            font-size: .85rem; 
+            font-weight: 600; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 4px; 
+        }
+        
+        .live-status-card {
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .live-status-card h4 {
+            margin: 0 0 12px 0;
+            color: var(--brand);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .teacher-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .teacher-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .current-time {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
+            font-family: 'Inter', monospace;
+        }
+        
+        .current-period {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        
+        .stats-mini {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-number {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
         .status-badge{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-weight:600; font-size:.85rem; }
         .status-verified{ background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
         .table-actions .record-count{ color:var(--muted); font-weight:500; }
@@ -690,6 +769,45 @@
             </div>
         </div>
 
+        <!-- Estado en Tiempo Real -->
+        <div class="header" id="live-status" style="margin-bottom:20px;">
+            <h3 style="font-family:'Playfair Display',serif; color:var(--brand); font-size:1.4rem; margin-bottom:16px;">
+                <i class="fas fa-signal" style="color:var(--accent);"></i> Estado en Tiempo Real
+            </h3>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px;">
+                <div class="live-status-card">
+                    <h4><i class="fas fa-users"></i> Profesores Activos</h4>
+                    <div id="active-teachers" class="teacher-list">
+                        <!-- Se llena por JS -->
+                    </div>
+                </div>
+                <div class="live-status-card">
+                    <h4><i class="fas fa-clock"></i> Horario Actual</h4>
+                    <div id="current-schedule">
+                        <div class="current-time" id="current-time">--:--:--</div>
+                        <div class="current-period" id="current-period">Calculando período...</div>
+                    </div>
+                </div>
+                <div class="live-status-card">
+                    <h4><i class="fas fa-chart-line"></i> Resumen Hoy</h4>
+                    <div class="stats-mini">
+                        <div class="stat-item">
+                            <span class="stat-number" id="today-entries">0</span>
+                            <span class="stat-label">Entradas</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="today-exits">0</span>
+                            <span class="stat-label">Salidas</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="today-late">0</span>
+                            <span class="stat-label">Tardanzas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="table-container" id="table-section" style="display: none;">
             <div class="table-header">
                 <h2>
@@ -705,11 +823,13 @@
                     <thead>
                         <tr>
                             <th><i class="fas fa-user"></i> Profesor</th>
+                            <th><i class="fas fa-door-open"></i> Tipo</th>
+                            <th><i class="fas fa-chalkboard"></i> Aula</th>
                             <th><i class="fas fa-book"></i> Materia</th>
                             <th><i class="fas fa-calendar"></i> Fecha</th>
                             <th><i class="fas fa-clock"></i> Hora</th>
+                            <th><i class="fas fa-traffic-light"></i> Estado</th>
                             <th><i class="fas fa-mobile-alt"></i> Dispositivo</th>
-                            <th><i class="fas fa-check-circle"></i> Estado</th>
                         </tr>
                     </thead>
                     <tbody id="attendance-tbody">
@@ -737,37 +857,165 @@
         let allAttendanceData = [];
         let filteredData = [];
         
-        // Datos de ejemplo para demo
+        // Base de datos de horarios de profesores
+        const TEACHER_SCHEDULES = {
+            "47045355": { // ALOCILLA FRANCO
+                name: "ALOCILLA FERNANDEZ, FRANCO ANDREE",
+                nivel: "Secundaria",
+                schedule: {
+                    "Lunes": [
+                        { hora: "7:30-9:00", aula: "3B", materia: "Matemática" },
+                        { hora: "9:00-10:30", aula: "4B", materia: "Matemática" },
+                        { hora: "10:30-10:45", aula: "RECREO", materia: "Recreo" },
+                        { hora: "10:45-11:30", aula: "LIBRE", materia: "Libre" },
+                        { hora: "11:30-13:00", aula: "3A", materia: "Matemática" }
+                    ],
+                    "Martes": [
+                        { hora: "7:30-9:00", aula: "3A", materia: "Matemática" },
+                        { hora: "9:00-9:45", aula: "LIBRE", materia: "Libre" },
+                        { hora: "9:45-10:30", aula: "4A", materia: "Matemática" },
+                        { hora: "10:30-10:45", aula: "RECREO", materia: "Recreo" },
+                        { hora: "10:45-11:30", aula: "4A", materia: "Matemática" },
+                        { hora: "11:30-12:15", aula: "4B", materia: "Matemática" },
+                        { hora: "12:15-13:00", aula: "4B", materia: "Matemática" }
+                    ],
+                    "Miércoles": [
+                        { hora: "7:30-9:00", aula: "5B", materia: "Ciencia y Tecnología" },
+                        { hora: "9:00-10:30", aula: "4A", materia: "Matemática" },
+                        { hora: "10:30-10:45", aula: "RECREO", materia: "Recreo" },
+                        { hora: "10:45-11:30", aula: "3B", materia: "Matemática" },
+                        { hora: "11:30-12:15", aula: "LIBRE", materia: "Libre" },
+                        { hora: "12:15-13:00", aula: "LIBRE", materia: "Libre" }
+                    ],
+                    "Jueves": [
+                        { hora: "7:30-9:00", aula: "4A", materia: "Matemática" },
+                        { hora: "9:00-10:30", aula: "3B", materia: "Matemática" },
+                        { hora: "10:30-10:45", aula: "RECREO", materia: "Recreo" },
+                        { hora: "10:45-11:30", aula: "LIBRE", materia: "Libre" },
+                        { hora: "11:30-13:00", aula: "5B", materia: "Ciencia y Tecnología" }
+                    ],
+                    "Viernes": [
+                        { hora: "7:30-9:00", aula: "4B", materia: "Matemática" },
+                        { hora: "9:00-9:45", aula: "LIBRE", materia: "Libre" },
+                        { hora: "9:45-10:30", aula: "3A", materia: "Matemática" },
+                        { hora: "10:30-10:45", aula: "RECREO", materia: "Recreo" },
+                        { hora: "10:45-11:30", aula: "COLEGIADA", materia: "Colegiada" },
+                        { hora: "11:30-13:00", aula: "LIBRE", materia: "Libre" }
+                    ]
+                }
+            }
+        };
+
+        // Función para obtener el horario actual del profesor
+        function getCurrentSchedule(professorId) {
+            const now = new Date();
+            const dayName = now.toLocaleLowerString('es-ES', { weekday: 'long' });
+            const dayMap = {
+                'lunes': 'Lunes', 'martes': 'Martes', 'miércoles': 'Miércoles', 
+                'jueves': 'Jueves', 'viernes': 'Viernes'
+            };
+            const day = dayMap[dayName];
+            
+            const teacher = TEACHER_SCHEDULES[professorId];
+            if (!teacher || !teacher.schedule[day]) return null;
+            
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+            
+            for (let slot of teacher.schedule[day]) {
+                const [start, end] = slot.hora.split('-');
+                const [startH, startM] = start.split(':').map(Number);
+                const [endH, endM] = end.split(':').map(Number);
+                
+                const startTime = startH * 60 + startM;
+                const endTime = endH * 60 + endM;
+                
+                if (currentTime >= startTime && currentTime <= endTime) {
+                    return { ...slot, teacher: teacher.name, nivel: teacher.nivel };
+                }
+            }
+            return null;
+        }
+
+        // Datos de ejemplo con sistema real de entrada/salida
         const DEMO_DATA = [
             {
-                professorId: "PROF001",
-                professorFullName: "María González Pérez",
-                subject: "Matemáticas",
+                professorId: "47045355", // ALOCILLA FRANCO
+                professorFullName: "ALOCILLA FERNANDEZ, FRANCO ANDREE",
+                subject: "Matemática",
+                aula: "3B",
                 date: new Date().toISOString().split('T')[0],
                 hour: 8,
-                time: "08:15:30",
+                time: "07:35:20",
+                type: "ENTRADA",
+                status: "PUNTUAL",
                 serverTimestamp: new Date(Date.now() - 3600000).toISOString(),
-                deviceId: "Android-12345"
+                deviceId: "Android-12345",
+                currentSchedule: getCurrentSchedule("47045355")
             },
             {
-                professorId: "PROF002", 
-                professorFullName: "Juan Carlos Rodríguez",
-                subject: "Historia",
+                professorId: "40770563", // CANO AVILA ROCIO
+                professorFullName: "CANO AVILA, ROCIO PILAR",
+                subject: "Primaria",
+                aula: "1A",
                 date: new Date().toISOString().split('T')[0],
-                hour: 9,
-                time: "09:10:15",
-                serverTimestamp: new Date(Date.now() - 1800000).toISOString(),
+                hour: 7,
+                time: "07:28:15",
+                type: "ENTRADA", 
+                status: "PUNTUAL",
+                serverTimestamp: new Date(Date.now() - 7200000).toISOString(),
                 deviceId: "iOS-67890"
             },
             {
-                professorId: "PROF003",
-                professorFullName: "Ana Lucia Torres",
-                subject: "Ciencias",
-                date: new Date().toISOString().split('T')[0], 
-                hour: 10,
-                time: "10:05:45",
-                serverTimestamp: new Date(Date.now() - 900000).toISOString(),
+                professorId: "42029091", // CHAMBI TORRES JANNETH
+                professorFullName: "CHAMBI TORRES, JANNETH CARLA",
+                subject: "Primaria",
+                aula: "2B",
+                date: new Date().toISOString().split('T')[0],
+                hour: 7,
+                time: "07:45:30",
+                type: "ENTRADA",
+                status: "TARDANZA",
+                serverTimestamp: new Date(Date.now() - 6300000).toISOString(),
                 deviceId: "Android-54321"
+            },
+            {
+                professorId: "47045355", // ALOCILLA FRANCO (SALIDA)
+                professorFullName: "ALOCILLA FERNANDEZ, FRANCO ANDREE",
+                subject: "Matemática",
+                aula: "4B",
+                date: new Date().toISOString().split('T')[0],
+                hour: 13, 
+                time: "13:05:10",
+                type: "SALIDA",
+                status: "COMPLETO",
+                serverTimestamp: new Date(Date.now() - 300000).toISOString(),
+                deviceId: "Android-12345"
+            },
+            {
+                professorId: "25691722", // CASTRO FALCON DAVID
+                professorFullName: "CASTRO FALCON, DAVID ALBERTO", 
+                subject: "Historia",
+                aula: "5A",
+                date: new Date().toISOString().split('T')[0],
+                hour: 8,
+                time: "08:10:45",
+                type: "ENTRADA",
+                status: "TARDANZA",
+                serverTimestamp: new Date(Date.now() - 5400000).toISOString(),
+                deviceId: "iOS-98765"
+            },
+            {
+                professorId: "40770563", // CANO AVILA ROCIO (SALIDA)
+                professorFullName: "CANO AVILA, ROCIO PILAR",
+                subject: "Primaria",
+                aula: "1A",
+                date: new Date().toISOString().split('T')[0],
+                hour: 13,
+                time: "13:02:20",
+                type: "SALIDA",
+                status: "COMPLETO",
+                serverTimestamp: new Date(Date.now() - 180000).toISOString(),
+                deviceId: "iOS-67890"
             }
         ];
         
@@ -848,6 +1096,7 @@
             renderTable();
             buildInsights();
             buildRangeSummary();
+            updateLiveStatus();
             
             document.getElementById('loading').style.display = 'none';
             
@@ -930,6 +1179,17 @@
                     second: '2-digit'
                 });
                 
+                // Determinar colores y iconos según el tipo y estado
+                const typeInfo = record.type === 'ENTRADA' ? 
+                    { icon: 'fa-sign-in-alt', color: '#10b981', text: 'ENTRADA' } : 
+                    { icon: 'fa-sign-out-alt', color: '#ef4444', text: 'SALIDA' };
+                
+                const statusInfo = {
+                    'PUNTUAL': { icon: 'fa-check-circle', color: '#10b981', text: 'PUNTUAL' },
+                    'TARDANZA': { icon: 'fa-exclamation-triangle', color: '#f59e0b', text: 'TARDANZA' },
+                    'COMPLETO': { icon: 'fa-check-double', color: '#06b6d4', text: 'COMPLETO' }
+                }[record.status] || { icon: 'fa-question-circle', color: '#6b7280', text: record.status };
+
                 return `
                     <tr>
                         <td>
@@ -939,18 +1199,30 @@
                             </div>
                         </td>
                         <td>
+                            <span class="type-badge" style="background-color: ${typeInfo.color}15; color: ${typeInfo.color}; border: 1px solid ${typeInfo.color}30;">
+                                <i class="fas ${typeInfo.icon}"></i>
+                                ${typeInfo.text}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="aula-badge" style="background-color: #3b82f615; color: #3b82f6; border: 1px solid #3b82f630;">
+                                <i class="fas fa-chalkboard"></i>
+                                ${record.aula || 'N/A'}
+                            </span>
+                        </td>
+                        <td>
                             <span class="subject-tag">${record.subject || 'N/A'}</span>
                         </td>
                         <td>${formattedDate}</td>
                         <td>${formattedTime}</td>
                         <td>
-                            <small style="color: #64748b;">${record.deviceId || 'Dispositivo móvil'}</small>
+                            <span class="status-badge" style="background-color: ${statusInfo.color}15; color: ${statusInfo.color}; border: 1px solid ${statusInfo.color}30;">
+                                <i class="fas ${statusInfo.icon}"></i>
+                                ${statusInfo.text}
+                            </span>
                         </td>
                         <td>
-                            <span class="status-badge status-verified">
-                                <i class="fas fa-check-circle"></i>
-                                Verificado
-                            </span>
+                            <small style="color: #64748b;">${record.deviceId || 'Dispositivo móvil'}</small>
                         </td>
                     </tr>
                 `;
@@ -1160,7 +1432,108 @@
             fill(monthlyMap, 'monthly-list', 'monthly-count');
         }
 
-        window.addEventListener('load', () => { loadData(); });
+        // Funciones para estado en tiempo real
+        function updateLiveStatus() {
+            updateCurrentTime();
+            updateActiveTeachers();
+            updateTodayStats();
+        }
+        
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('current-time').textContent = timeStr;
+            
+            // Determinar período actual
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            const currentTime = hour * 60 + minute;
+            
+            let period = 'Fuera de horario escolar';
+            if (currentTime >= 450 && currentTime < 540) { // 7:30-9:00
+                period = '1er Período (7:30-9:00)';
+            } else if (currentTime >= 540 && currentTime < 630) { // 9:00-10:30
+                period = '2do Período (9:00-10:30)';
+            } else if (currentTime >= 630 && currentTime < 645) { // 10:30-10:45
+                period = 'RECREO (10:30-10:45)';
+            } else if (currentTime >= 645 && currentTime < 690) { // 10:45-11:30
+                period = '3er Período (10:45-11:30)';
+            } else if (currentTime >= 690 && currentTime < 735) { // 11:30-12:15
+                period = '4to Período (11:30-12:15)';
+            } else if (currentTime >= 735 && currentTime < 780) { // 12:15-13:00
+                period = '5to Período (12:15-13:00)';
+            }
+            
+            document.getElementById('current-period').textContent = period;
+        }
+        
+        function updateActiveTeachers() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayData = allAttendanceData.filter(record => record.date === today);
+            
+            // Calcular profesores activos (tienen entrada pero no salida)
+            const activeTeachers = [];
+            const teacherStatus = {};
+            
+            // Procesar registros cronológicamente
+            todayData
+                .sort((a, b) => new Date(a.serverTimestamp) - new Date(b.serverTimestamp))
+                .forEach(record => {
+                    if (record.type === 'ENTRADA') {
+                        teacherStatus[record.professorId] = {
+                            name: record.professorFullName,
+                            aula: record.aula,
+                            subject: record.subject,
+                            entryTime: record.time,
+                            active: true
+                        };
+                    } else if (record.type === 'SALIDA') {
+                        if (teacherStatus[record.professorId]) {
+                            teacherStatus[record.professorId].active = false;
+                        }
+                    }
+                });
+            
+            // Filtrar solo los activos
+            Object.values(teacherStatus)
+                .filter(teacher => teacher.active)
+                .forEach(teacher => activeTeachers.push(teacher));
+            
+            const container = document.getElementById('active-teachers');
+            if (activeTeachers.length === 0) {
+                container.innerHTML = '<div style="color: #6b7280; font-style: italic;">No hay profesores activos registrados</div>';
+            } else {
+                container.innerHTML = activeTeachers.map(teacher => `
+                    <div class="teacher-item">
+                        <div>
+                            <strong>${teacher.name.split(',')[0]}</strong>
+                            <div style="font-size: 0.8rem; color: #6b7280;">${teacher.aula} • ${teacher.subject}</div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #10b981;">${teacher.entryTime}</div>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        function updateTodayStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayData = allAttendanceData.filter(record => record.date === today);
+            
+            const entries = todayData.filter(r => r.type === 'ENTRADA').length;
+            const exits = todayData.filter(r => r.type === 'SALIDA').length;
+            const late = todayData.filter(r => r.status === 'TARDANZA').length;
+            
+            document.getElementById('today-entries').textContent = entries;
+            document.getElementById('today-exits').textContent = exits;
+            document.getElementById('today-late').textContent = late;
+        }
+
+        window.addEventListener('load', () => { 
+            loadData(); 
+            updateLiveStatus();
+            // Actualizar cada 30 segundos
+            setInterval(updateLiveStatus, 30000);
+        });
 
         // Aplicar filtros en tiempo real
         document.getElementById('filter-professor').addEventListener('input', applyFilters);
