@@ -211,18 +211,16 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          '✅ Backend Online Activo',
+                          '✅ Servidor Local Activo',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.green,
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          functionUrl.contains('onrender.com')
-                              ? 'Servidor: Render.com (público)'
-                              : 'Servidor: ${functionUrl}',
-                          style: const TextStyle(fontSize: 12),
+                        const Text(
+                          'Conectado a tu PC (WiFi)',
+                          style: TextStyle(fontSize: 12),
                         ),
                       ],
                     ),
@@ -503,9 +501,8 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // URL del backend público en Render.com (se despliega automáticamente desde GitHub)
-      const defaultBackendUrl =
-          'https://attendance-qr-backend.onrender.com/api/attendance';
+      // URL del servidor local en tu red WiFi
+      const defaultBackendUrl = 'http://192.168.100.7:3000/api/attendance';
       const defaultSecret = 'dev_secret';
 
       setState(() {
