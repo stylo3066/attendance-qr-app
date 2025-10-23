@@ -5,6 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const professors = require('./professors');
 const QRCode = require('qrcode');
+let admin = null;
+let firestore = null;
 
 const app = express();
 let PORT = Number(process.env.PORT) || 3000;
@@ -16,7 +18,22 @@ app.use(express.json());
 // Servir librerías estáticas locales (evitar dependencia de CDN)
 app.use('/vendor', express.static(path.join(__dirname, 'vendor')));
 
-// Simulación de Firestore (archivo JSON local)
+// ===== Almacenamiento: Firestore (si está configurado) o archivo local =====
+try {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    admin = require('firebase-admin');
+    if (!admin.apps || admin.apps.length === 0) {
+      admin.initializeApp({ credential: admin.credential.cert(sa) });
+    }
+    firestore = admin.firestore();
+    console.log('🔥 Firestore habilitado (modo cooperativo en la nube)');
+  }
+} catch (e) {
+  console.warn('⚠️ No se pudo inicializar Firestore:', e.message);
+}
+
+// Simulación local (archivo JSON) si Firestore no está disponible
 const DB_FILE = path.join(__dirname, 'local_db.json');
 
 // Inicializar base de datos local si no existe
@@ -35,33 +52,57 @@ function readDB() {
 
 function writeDB(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-  
-  // También generar archivo para que el dashboard web pueda leerlo
-  const webFile = path.join(__dirname, '..', 'web', 'live-attendance.json');
-  
-  // Convertir datos a formato compatible con dashboard
-  const dashboardData = data.attendance_events.map(event => ({
-    id: event.id,
-    qrCode: event.data.qrCode,
-    deviceId: event.data.deviceId,
-    timestamp: event.data.timestamp,
-    professorId: event.data.qrCode,
-    professorFullName: event.professor_name,
-    subject: event.subject,
-    serverTimestamp: event.serverTimestamp,
-    date: new Date(event.serverTimestamp).toISOString().split('T')[0],
-    time: new Date(event.serverTimestamp).toTimeString().split(' ')[0],
-    hour: new Date(event.serverTimestamp).getHours(),
-    type: Math.random() > 0.5 ? 'ENTRADA' : 'SALIDA',
-    status: 'PUNTUAL',
-    verified: true
-  }));
-  
-  try {
-    fs.writeFileSync(webFile, JSON.stringify(dashboardData, null, 2));
-    console.log(`📊 Dashboard data exported: ${dashboardData.length} records`);
-  } catch (error) {
-    console.log('⚠️ Could not export to web directory:', error.message);
+  // Export a web solo en entorno local (no en Vercel)
+  if (!process.env.VERCEL) {
+    const webFile = path.join(__dirname, '..', 'web', 'live-attendance.json');
+    const dashboardData = data.attendance_events.map(event => ({
+      id: event.id,
+      qrCode: event.qrCode || event.data?.qrCode,
+      deviceId: event.deviceId || event.data?.deviceId,
+      timestamp: event.timestamp || event.data?.timestamp,
+      professorId: event.professorId || event.qrCode,
+      professorFullName: event.professorFullName || event.professor_name,
+      subject: event.subject,
+      serverTimestamp: event.serverTimestamp,
+      date: new Date(event.serverTimestamp).toISOString().split('T')[0],
+      time: new Date(event.serverTimestamp).toTimeString().split(' ')[0],
+      hour: new Date(event.serverTimestamp).getHours(),
+      type: event.eventType?.toUpperCase?.() || 'ENTRADA',
+      status: 'PUNTUAL',
+      verified: true
+    }));
+    try {
+      fs.writeFileSync(webFile, JSON.stringify(dashboardData, null, 2));
+      console.log(`📊 Dashboard data exported: ${dashboardData.length} records`);
+    } catch (error) {
+      console.log('⚠️ Could not export to web directory:', error.message);
+    }
+  }
+}
+
+async function saveEvent(event) {
+  if (firestore) {
+    const ref = await firestore.collection('attendance_events').add(event);
+    return { id: ref.id };
+  } else {
+    const db = readDB();
+    db.attendance_events.push(event);
+    writeDB(db);
+    return { id: event.id };
+  }
+}
+
+async function readEvents(limit = 200) {
+  if (firestore) {
+    const snap = await firestore
+      .collection('attendance_events')
+      .orderBy('serverTimestamp', 'desc')
+      .limit(limit)
+      .get();
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } else {
+    const db = readDB();
+    return db.attendance_events;
   }
 }
 
@@ -110,8 +151,7 @@ app.post('/api/attendance', async (req, res) => {
       return res.status(401).json({ error: 'invalid signature' });
     }
 
-    // Guardar en "base de datos" local con información del profesor
-    const db = readDB();
+    // Guardar en almacenamiento (Firestore o local)
     const now = new Date();
     const event = {
       id: Date.now().toString(),
@@ -133,9 +173,7 @@ app.post('/api/attendance', async (req, res) => {
       dayOfWeek: now.toLocaleDateString('es-ES', { weekday: 'long' }),
       readableDateTime: now.toLocaleString('es-ES')
     };
-    
-    db.attendance_events.push(event);
-    writeDB(db);
+    await saveEvent(event);
     
     console.log('✅ Event saved:', {
       professor: `${professor.nombre} ${professor.apellido}`,
@@ -162,15 +200,23 @@ app.post('/api/attendance', async (req, res) => {
 });
 
 // Endpoint para ver todos los registros (útil para debugging)
-app.get('/api/attendance', (req, res) => {
-  const db = readDB();
-  res.json(db.attendance_events);
+app.get('/api/attendance', async (req, res) => {
+  const docs = await readEvents();
+  res.json(docs);
 });
 
 // Endpoint para limpiar la base de datos local
-app.delete('/api/attendance', (req, res) => {
-  writeDB({ attendance_events: [] });
-  res.json({ message: 'Database cleared' });
+app.delete('/api/attendance', async (req, res) => {
+  if (firestore && process.env.FIREBASE_ALLOW_DELETE === 'true') {
+    const snap = await firestore.collection('attendance_events').limit(500).get();
+    const batch = firestore.batch();
+    snap.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    return res.json({ message: 'Firestore cleared (first 500)' });
+  } else {
+    writeDB({ attendance_events: [] });
+    return res.json({ message: 'Local database cleared' });
+  }
 });
 
 // Servir solo el dashboard

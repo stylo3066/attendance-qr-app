@@ -7,6 +7,11 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
+import 'package:qr_flutter/qr_flutter.dart';
+import 'dart:ui' as ui;
+import 'package:universal_html/html.dart' as html show AnchorElement, Blob, Url, document;
 
 void main() {
   runApp(const AttendanceQRApp());
@@ -50,6 +55,10 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
   String functionUrl = '';
   String hmacSecret = '';
 
+  // ====== QR Generator (Web) ======
+  final GlobalKey _qrRepaintKey = GlobalKey();
+  String _qrText = '';
+
   @override
   void initState() {
     super.initState();
@@ -84,6 +93,12 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
             icon: const Icon(Icons.history),
             onPressed: _showAttendanceRecords,
             tooltip: 'Ver registros',
+          ),
+          // Generador de QR (descarga PNG en Web)
+          IconButton(
+            icon: const Icon(Icons.qr_code_2),
+            tooltip: 'Generar/Descargar QR',
+            onPressed: _openQrGeneratorDialog,
           ),
           IconButton(
             icon: isSyncing
@@ -402,6 +417,125 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
         ],
       ),
     );
+  }
+
+  // ===== Generador de QR (Web) =====
+  void _openQrGeneratorDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Generar QR de Profesor (PNG)'),
+          content: SizedBox(
+            width: 380,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Escribe el ID del profesor (por ejemplo: PROF_001)'),
+                const SizedBox(height: 8),
+                TextField(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'PROF_ID',
+                  ),
+                  onChanged: (v){ setState((){ _qrText = v.trim();}); },
+                ),
+                const SizedBox(height: 16),
+                if (_qrText.isNotEmpty)
+                  Center(
+                    child: RepaintBoundary(
+                      key: _qrRepaintKey,
+                      child: Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.all(8),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('Vista previa'),
+                            const SizedBox(height: 8),
+                            // Widget del QR
+                            SizedBox(
+                              width: 260,
+                              height: 260,
+                              child: Center(
+                                child: _buildQrPreview(_qrText),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(_qrText, style: const TextStyle(fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cerrar'),
+            ),
+            if (_qrText.isNotEmpty)
+              ElevatedButton.icon(
+                onPressed: _downloadQrPng,
+                icon: const Icon(Icons.download),
+                label: const Text('Descargar PNG'),
+              )
+          ],
+        );
+      }
+    );
+  }
+
+  Widget _buildQrPreview(String text){
+    // Para evitar dependencias de servidor, usamos el widget QR de cliente.
+    // Si no tienes mobile_scanner para QR, puedes usar qr_flutter (ya está en pubspec).
+    return Container(
+      color: Colors.white,
+      child: Center(
+        child: SizedBox(
+          width: 240,
+          height: 240,
+          child: ColoredBox(
+            color: Colors.white,
+            child: Center(
+              child: QrImageView(
+                data: text,
+                version: QrVersions.auto,
+                size: 240,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _downloadQrPng() async {
+    try {
+      if (!kIsWeb) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Descarga disponible solo en Web')));
+        return;
+      }
+      final boundary = _qrRepaintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) return;
+      final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final pngBytes = byteData!.buffer.asUint8List();
+
+      final blob = html.Blob([pngBytes], 'image/png');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..download = (_qrText.isNotEmpty ? _qrText : 'qr') + '.png';
+      html.document.body!.append(anchor);
+      anchor.click();
+      anchor.remove();
+      html.Url.revokeObjectUrl(url);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo descargar: $e')));
+    }
   }
 
   Future<void> _testConnection() async {
