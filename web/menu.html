@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Asistencia QR - Menú Principal</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+        .menu-item {
+            display: block;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .menu-item:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        .menu-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        .status {
+            background: #e7f5e7;
+            border: 1px solid #4caf50;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Sistema de Asistencia QR</h1>
+        <p class="subtitle">Institución Educativa Antonia Moreno de Cáceres N.º 5090</p>
+        
+        <a href="./index.html" class="menu-item">
+            <span class="menu-icon">📱</span>
+            Aplicación Principal Flutter
+        </a>
+        
+        <a href="./dashboard.html" class="menu-item">
+            <span class="menu-icon">📊</span>
+            Dashboard Ejecutivo
+        </a>
+        
+        <a href="./test-qr.html" class="menu-item">
+            <span class="menu-icon">🔍</span>
+            Generador/Test QR
+        </a>
+        
+        <div class="status">
+            ✅ Sistema desplegado y funcionando en GitHub Pages
+        </div>
+        
+        <p style="font-size: 0.8rem; color: #666; margin-top: 20px;">
+            Última actualización: <span id="timestamp"></span>
+        </p>
+    </div>
+    
+    <script>
+        document.getElementById('timestamp').textContent = new Date().toLocaleString('es-ES');
+    </script>
+</body>
+</html>
