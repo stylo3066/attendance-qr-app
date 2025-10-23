@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: asistencia-qr
+    env: node
+    rootDir: .
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: HMAC_SECRET
+        value: dev_secret # Cambia esto por un secreto fuerte en Render

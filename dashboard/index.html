@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard Asistencia</title>
+  <style>
+    body{font-family: Arial, Helvetica, sans-serif; margin:20px}
+    table{width:100%; border-collapse: collapse}
+    th,td{padding:8px;border:1px solid #ddd}
+    th{background:#f4f4f4}
+    .controls{margin-bottom:12px}
+    .hidden{display:none}
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h1>Dashboard - Asistencia (tiempo real)</h1>
+
+  <div id="auth">
+    <div id="loginBox">
+      <input id="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password" />
+      <button id="btnLogin">Iniciar sesión</button>
+    </div>
+    <div id="userInfo" class="hidden">
+      <span id="userEmail"></span>
+      <button id="btnLogout">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div id="main" class="hidden">
+    <div class="controls">
+      <label>Filtro usuario / email: <input id="filterUser" /></label>
+      <label>Filtro QR: <input id="filterQR" /></label>
+      <button id="btnApply">Aplicar</button>
+      <button id="btnClear">Limpiar</button>
+      <button id="btnExport">Exportar CSV</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Fecha</th><th>Usuario</th><th>QR</th><th>Device</th><th>Verificado</th></tr>
+      </thead>
+      <tbody id="eventsTable"></tbody>
+    </table>
+  </div>
+
+  <p id="msg"></p>
+
+  <script>
+    // Reemplaza con tu configuración desde la consola de Firebase
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_PROYECTO.firebaseapp.com", 
+      projectId: "TU_PROYECTO",
+      storageBucket: "TU_PROYECTO.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "TU_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
+  <script src="./app.js"></script>
+</body>
+</html>
