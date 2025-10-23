@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QR de Prueba - Asistencia Profesores</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs2@0.0.2/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
   <style>
     :root{ --brand:#0f172a; --gold:#c5a351; }
     body{ font-family:'Inter',system-ui,sans-serif; background:#f8fafc; margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; }
@@ -49,97 +48,79 @@
         if(DEMO_PROFESSORS.length){ renderQR(DEMO_PROFESSORS[0].id); }
       }
     }
-    async function renderQR(text){
+    function renderQR(text){
       const box = document.getElementById('qr');
       box.innerHTML = '';
       
-      // Intento A: servidor genera PNG (si está disponible)
-      try {
-        const img = document.createElement('img');
-        img.alt = 'QR';
-        img.width = 260;
-        img.height = 260;
-        img.src = `${api}/qr?text=${encodeURIComponent(text)}`;
-        const ok = await new Promise((resolve) => {
-          img.onload = () => resolve(true);
-          img.onerror = () => resolve(false);
-          setTimeout(() => resolve(false), 2000);
-        });
-        if (ok) {
-          box.appendChild(img);
-          document.getElementById('sample').textContent = text;
-          return;
-        }
-      } catch {}
-
-      // Intento B: qrcode.js con toCanvas (librería más robusta)
-      if (window.QRCode && window.QRCode.toCanvas) {
-        const canvas = document.createElement('canvas');
+      // Método 1: QRious (más confiable)
+      if (window.QRious) {
         try {
-          await window.QRCode.toCanvas(canvas, text, { 
-            width: 260, 
-            margin: 2,
-            color: {
-              dark: '#000000',
-              light: '#FFFFFF'
-            }
+          const canvas = document.createElement('canvas');
+          const qr = new window.QRious({
+            element: canvas,
+            value: text,
+            size: 260,
+            background: 'white',
+            foreground: 'black',
+            level: 'M'
           });
           box.appendChild(canvas);
           document.getElementById('sample').textContent = text;
           return;
         } catch (e) {
-          console.log('Error con QRCode.toCanvas:', e);
+          console.log('Error con QRious:', e);
         }
       }
 
-      // Intento C: qrcodejs2 (constructor)
-      if (window.QRCode && typeof window.QRCode === 'function') {
-        try {
-          box.innerHTML = '<div id="qrcode-container"></div>';
-          const container = box.querySelector('#qrcode-container');
-          new window.QRCode(container, { 
-            text: text, 
-            width: 260, 
-            height: 260,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: window.QRCode.CorrectLevel.M
-          });
-          document.getElementById('sample').textContent = text;
-          return;
-        } catch (e) {
-          console.log('Error con QRCode constructor:', e);
-        }
-      }
-
-      // Intento D: Usar API externa como fallback
+      // Método 2: API externa como fallback
       try {
         const img = document.createElement('img');
         img.alt = 'QR Code';
         img.width = 260;
         img.height = 260;
-        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(text)}`;
-        const ok = await new Promise((resolve) => {
-          img.onload = () => resolve(true);
-          img.onerror = () => resolve(false);
-          setTimeout(() => resolve(false), 5000);
-        });
-        if (ok) {
-          box.appendChild(img);
+        img.style.border = '1px solid #e2e8f0';
+        img.style.borderRadius = '8px';
+        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(text)}&bgcolor=FFFFFF&color=000000&margin=10`;
+        
+        img.onload = function() {
+          console.log('QR generado exitosamente con API externa');
           document.getElementById('sample').textContent = text;
-          return;
-        }
-      } catch {}
+        };
+        
+        img.onerror = function() {
+          console.log('Error cargando QR desde API externa');
+          box.innerHTML = '<div style="color:#b91c1c; text-align:center; padding:20px;">❌ Error generando QR<br><small>Verifica tu conexión a internet</small></div>';
+        };
+        
+        box.appendChild(img);
+        return;
+      } catch (e) {
+        console.log('Error con API externa:', e);
+      }
 
       // Si todo falla
-      box.innerHTML = '<div style="color:#b91c1c; text-align:center; padding:20px;">❌ Error generando QR<br><small>Verifica tu conexión a internet</small></div>';
+      box.innerHTML = '<div style="color:#b91c1c; text-align:center; padding:20px;">❌ Error generando QR<br><small>Verifica tu conexión a internet o prueba recargando la página</small></div>';
       document.getElementById('sample').textContent = text || '—';
     }
     function onGenerate(){
       const id = document.getElementById('prof').value || 'PROF_001';
-      renderQR(id);
+      console.log('Generando QR para:', id);
+      
+      // Mostrar indicador de carga
+      const box = document.getElementById('qr');
+      box.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">⏳ Generando QR...</div>';
+      
+      // Pequeño delay para mostrar el indicador
+      setTimeout(() => {
+        renderQR(id);
+      }, 100);
     }
-    window.addEventListener('load', loadProfessors);
+    
+    // Debug: verificar qué librerías están disponibles
+    window.addEventListener('load', function() {
+      console.log('QRious disponible:', !!window.QRious);
+      loadProfessors();
+    });
   </script>
   </head>
 <body>
@@ -149,6 +130,7 @@
     <div class="row">
       <select id="prof" style="flex:1"></select>
       <button onclick="onGenerate()">Generar QR</button>
+      <button onclick="renderQR('TEST123')" style="background:#28a745; border-color:#28a745;">Prueba</button>
     </div>
     <div class="qrbox" id="qr"></div>
     <p style="margin-top:10px"><small>Contenido del QR: <strong id="sample">—</strong></small></p>
