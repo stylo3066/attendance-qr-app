@@ -67,6 +67,18 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
       appBar: AppBar(
         title: const Text('Control de Asistencia QR'),
         actions: [
+          // Probar conexión rápidamente
+          IconButton(
+            icon: const Icon(Icons.wifi),
+            tooltip: 'Probar conexión',
+            onPressed: _testConnection,
+          ),
+          // Abrir ajustes (URL/Secreto) y autodetección
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Ajustes de sincronización',
+            onPressed: _openSettingsDialog,
+          ),
           IconButton(
             icon: const Icon(Icons.history),
             onPressed: _showAttendanceRecords,
@@ -185,6 +197,46 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
+                  // Estado de conexión / Config actual
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: (functionUrl.isNotEmpty && hmacSecret.isNotEmpty)
+                          ? Colors.green[50]
+                          : Colors.orange[50],
+                      border: Border.all(
+                        color: (functionUrl.isNotEmpty && hmacSecret.isNotEmpty)
+                            ? Colors.green
+                            : Colors.orange,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          (functionUrl.isNotEmpty && hmacSecret.isNotEmpty)
+                              ? 'Estado conexión: Configurada'
+                              : 'Estado conexión: Sin configurar',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: (functionUrl.isNotEmpty &&
+                                    hmacSecret.isNotEmpty)
+                                ? Colors.green
+                                : Colors.orange,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text('FUNCTION_URL: ' +
+                            (functionUrl.isEmpty ? '—' : functionUrl)),
+                        Text('HMAC_SECRET: ' +
+                            (hmacSecret.isEmpty ? '—' : '••••')),
+                      ],
+                    ),
+                  ),
+
                   // Botón de scanner
                   SizedBox(
                     width: double.infinity,
@@ -255,6 +307,41 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
         ],
       ),
     );
+  }
+
+  Future<void> _testConnection() async {
+    if (functionUrl.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Configura FUNCTION_URL en Ajustes')),
+        );
+      }
+      return;
+    }
+    try {
+      Uri base;
+      final url = Uri.parse(functionUrl);
+      final path = url.path;
+      if (path.endsWith('/api/attendance')) {
+        // Probar /health en el mismo host
+        base = url.replace(path: '/health', query: '');
+      } else {
+        // Probar la propia URL (esperar 200/404/405 como señal de alcance)
+        base = url;
+      }
+      final resp = await http.get(base).timeout(const Duration(seconds: 3));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Conexión OK: HTTP ${resp.statusCode}')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se pudo conectar: $e')),
+        );
+      }
+    }
   }
 
   // Método para cambiar entre cámara delantera y trasera
@@ -408,19 +495,17 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
         functionUrl = prefs.getString('FUNCTION_URL') ?? '';
         hmacSecret = prefs.getString('HMAC_SECRET') ?? '';
       });
-      // CONFIGURACIÓN AUTOMÁTICA: Siempre configurar endpoints predeterminados
+      // Si no hay configuración previa, intentar autodetectar el proxy local
       if (functionUrl.isEmpty || hmacSecret.isEmpty) {
-        // Auto-configurar con endpoints que siempre funcionen
-        functionUrl =
-            'https://httpbin.org/post'; // Endpoint de prueba que siempre responde
-        hmacSecret = 'auto_generated_secret_' +
-            DateTime.now().millisecondsSinceEpoch.toString();
-
-        // Guardar configuración automática
-        await prefs.setString('FUNCTION_URL', functionUrl);
-        await prefs.setString('HMAC_SECRET', hmacSecret);
-
-        debugPrint('✅ CONFIGURACIÓN AUTOMÁTICA: $functionUrl');
+        final found = await _autoDiscoverLocalProxy();
+        if (!found) {
+          // Como último recurso, configurar secreto por defecto y dejar URL vacía
+          // para evitar enviar datos a endpoints externos no controlados.
+          hmacSecret = hmacSecret.isNotEmpty ? hmacSecret : 'dev_secret';
+          await prefs.setString('HMAC_SECRET', hmacSecret);
+          debugPrint(
+              'ℹ️ No se detectó proxy local. Configure FUNCTION_URL en Ajustes.');
+        }
       }
       debugPrint(
           'Config loaded: FUNCTION_URL=${functionUrl.isNotEmpty}, HMAC_SECRET=${hmacSecret.isNotEmpty}');
@@ -501,6 +586,45 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
               controller: secretController,
               decoration: const InputDecoration(labelText: 'HMAC_SECRET'),
               obscureText: true,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.wifi_tethering),
+                    label: const Text('Autodetectar (LAN)'),
+                    onPressed: () async {
+                      // Mostrar un pequeño feedback visual
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Buscando servidor local...')),
+                      );
+                      final ok = await _autoDiscoverLocalProxy();
+                      if (ok) {
+                        urlController.text = functionUrl;
+                        if (secretController.text.isEmpty) {
+                          secretController.text =
+                              hmacSecret.isNotEmpty ? hmacSecret : 'dev_secret';
+                        }
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Detectado: $functionUrl')),
+                          );
+                        }
+                      } else {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    'No se encontró servidor en la red. Verifique que el proxy esté ejecutándose.')),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
           ],
         ),
