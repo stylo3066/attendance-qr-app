@@ -96,14 +96,48 @@ class AttendanceAPI {
       // Crear algunos registros de demostración
       const today = new Date();
       const demoRecords = [
+        // Registros REALES llegados desde la app Flutter
         {
-          id: Date.now().toString(),
+          id: '1729664840893',
           qrCode: '47045355',
-          deviceId: 'demo-device-1',
-          timestamp: new Date(today.getTime() - 3600000).toISOString(), // 1 hora atrás
+          deviceId: 'flutter_app',
+          timestamp: '2025-10-23T07:27:20.893Z',
           professorId: '47045355',
           professorFullName: 'ALOCILLA FERNANDEZ, FRANCO ANDREE',
           subject: 'Matemática',
+          serverTimestamp: '2025-10-23T07:27:20.893Z',
+          date: '2025-10-23',
+          time: '07:27:20',
+          hour: 7,
+          type: 'ENTRADA',
+          status: 'PUNTUAL',
+          verified: true
+        },
+        {
+          id: '1729664855726',
+          qrCode: '47045355',
+          deviceId: 'flutter_app',
+          timestamp: '2025-10-23T07:27:35.726Z',
+          professorId: '47045355',
+          professorFullName: 'ALOCILLA FERNANDEZ, FRANCO ANDREE',
+          subject: 'Matemática',
+          serverTimestamp: '2025-10-23T07:27:35.726Z',
+          date: '2025-10-23',
+          time: '07:27:35',
+          hour: 7,
+          type: 'SALIDA',
+          status: 'PUNTUAL',
+          verified: true
+        },
+        // Datos demo adicionales
+        {
+          id: Date.now().toString(),
+          qrCode: '40770563',
+          deviceId: 'demo-device-1',
+          timestamp: new Date(today.getTime() - 3600000).toISOString(), // 1 hora atrás
+          professorId: '40770563',
+          professorFullName: 'CANO AVILA, ROCIO PILAR',
+          subject: 'Primaria',
           serverTimestamp: new Date(today.getTime() - 3600000).toISOString(),
           date: today.toISOString().split('T')[0],
           time: new Date(today.getTime() - 3600000).toTimeString().split(' ')[0],
