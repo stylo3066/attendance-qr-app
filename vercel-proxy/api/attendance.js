@@ -1,17 +1,23 @@
 const admin = require('firebase-admin');
 const crypto = require('crypto');
 
-// Inicializar Firebase Admin con variables de entorno
-if (!admin.apps.length) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '{}');
-  if (serviceAccount.project_id) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
+// Inicializar Firebase Admin con variables de entorno (si existe credencial)
+let db = null;
+try {
+  if (!admin.apps.length) {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '{}');
+    if (serviceAccount.project_id) {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+    }
   }
+  if (admin.apps.length) {
+    db = admin.firestore();
+  }
+} catch (_) {
+  db = null;
 }
-
-const db = admin.firestore();
 
 export default async function handler(req, res) {
   // CORS para permitir requests desde cualquier origen
@@ -56,20 +62,26 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'invalid signature' });
     }
 
-    // Guardar en Firestore
-    const event = {
-      ...data,
-      verified: true,
-      timestamp: admin.firestore.FieldValue.serverTimestamp()
-    };
-
-    const docRef = await db.collection('attendance_events').add(event);
-    
-    return res.status(200).json({ 
-      ok: true, 
-      id: docRef.id,
-      message: 'Attendance recorded successfully'
-    });
+    // Guardar en Firestore si está configurado; si no, responder OK sin persistir
+    if (db) {
+      const event = {
+        ...data,
+        verified: true,
+        timestamp: admin.firestore.FieldValue.serverTimestamp()
+      };
+      const docRef = await db.collection('attendance_events').add(event);
+      return res.status(200).json({ 
+        ok: true, 
+        id: docRef.id,
+        message: 'Attendance recorded successfully'
+      });
+    } else {
+      return res.status(200).json({
+        ok: true,
+        id: null,
+        message: 'Attendance received (no DB configured)'
+      });
+    }
 
   } catch (error) {
     console.error('Error processing attendance:', error);
