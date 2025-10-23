@@ -44,6 +44,13 @@ jobs:
       - name: Build Flutter web
         run: flutter build web --release --base-href="/attendance-qr-app/"
         
+      - name: Copy additional web files
+        run: |
+          cp web/dashboard.html build/web/dashboard.html
+          cp web/test-qr.html build/web/test-qr.html
+          cp web/professors.js build/web/professors.js
+          cp -r web/vendor build/web/vendor
+        
       - name: Setup Pages
         uses: actions/configure-pages@v4
         
