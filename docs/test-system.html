@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sistema QR</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 8px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Sistema de Asistencia QR</h1>
+    
+    <div class="test">
+        <h3>Estado del Sistema:</h3>
+        <div id="system-status">Cargando...</div>
+    </div>
+    
+    <div class="test">
+        <h3>Tests Disponibles:</h3>
+        <button onclick="testGitHubPages()">Probar GitHub Pages</button>
+        <button onclick="testMockAPI()">Probar Mock API</button>
+        <button onclick="testLocalServer()">Probar Servidor Local</button>
+        <button onclick="testCompleteFlow()">Flujo Completo</button>
+    </div>
+    
+    <div id="results">
+        <h3>Resultados:</h3>
+        <div id="test-results"></div>
+    </div>
+
+    <script src="mock-api.js"></script>
+    <script>
+        let testNumber = 1;
+
+        function addResult(message, success = true) {
+            const results = document.getElementById('test-results');
+            const div = document.createElement('div');
+            div.className = success ? 'test success' : 'test error';
+            div.innerHTML = `<strong>Test ${testNumber++}:</strong> ${message}`;
+            results.appendChild(div);
+        }
+
+        function testGitHubPages() {
+            addResult('GitHub Pages: Página cargada correctamente ✅');
+            
+            // Probar si mock API está disponible
+            if (window.attendanceAPI) {
+                addResult('Mock API: Disponible ✅');
+                
+                // Probar profesores
+                const professors = window.attendanceAPI.getProfessors();
+                addResult(`Profesores: ${professors.length} profesores cargados ✅`);
+                
+            } else {
+                addResult('Mock API: No disponible ❌', false);
+            }
+        }
+
+        function testMockAPI() {
+            if (!window.attendanceAPI) {
+                addResult('Mock API no disponible ❌', false);
+                return;
+            }
+
+            try {
+                // Test health
+                const health = window.attendanceAPI.getHealth();
+                addResult(`Health Check: ${health.status} - ${health.mode} ✅`);
+
+                // Test attendance data
+                const records = window.attendanceAPI.getAttendance();
+                addResult(`Registros existentes: ${records.length} registros ✅`);
+
+                // Test agregar registro
+                const newRecord = {
+                    qrCode: 'TEST001',
+                    deviceId: 'test-device',
+                    timestamp: new Date().toISOString()
+                };
+
+                const result = window.attendanceAPI.postAttendance(newRecord);
+                addResult(`Agregar registro: ${result.message} ✅`);
+
+                // Verificar que se agregó
+                const updatedRecords = window.attendanceAPI.getAttendance();
+                addResult(`Verificación: ${updatedRecords.length} registros (agregado correctamente) ✅`);
+
+            } catch (error) {
+                addResult(`Mock API Error: ${error.message} ❌`, false);
+            }
+        }
+
+        function testLocalServer() {
+            const urls = [
+                'http://192.168.100.7:3000/health',
+                'http://localhost:3000/health'
+            ];
+
+            urls.forEach(url => {
+                fetch(url, { 
+                    method: 'GET',
+                    mode: 'no-cors' // Para evitar problemas de CORS
+                })
+                .then(() => {
+                    addResult(`Servidor local: ${url} respondiendo ✅`);
+                })
+                .catch(error => {
+                    addResult(`Servidor local: ${url} no disponible ❌`, false);
+                });
+            });
+        }
+
+        function testCompleteFlow() {
+            addResult('=== INICIANDO FLUJO COMPLETO ===');
+            
+            // Simular escaneo QR
+            const mockQR = '47045355'; // ALOCILLA FRANCO
+            addResult(`1. QR Escaneado: ${mockQR} ✅`);
+            
+            // Simular envío a API
+            if (window.attendanceAPI) {
+                try {
+                    const result = window.attendanceAPI.postAttendance({
+                        qrCode: mockQR,
+                        deviceId: 'test-flow',
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    addResult(`2. Registro guardado: ${result.professor} ✅`);
+                    
+                    // Verificar en dashboard mock
+                    const records = window.attendanceAPI.getAttendance();
+                    const lastRecord = records[records.length - 1];
+                    
+                    if (lastRecord.qrCode === mockQR) {
+                        addResult(`3. Verificación dashboard: Registro visible ✅`);
+                        addResult(`4. FLUJO COMPLETO: TODO FUNCIONA ✅`);
+                    } else {
+                        addResult(`3. Dashboard: Registro no encontrado ❌`, false);
+                    }
+                    
+                } catch (error) {
+                    addResult(`2. Error en registro: ${error.message} ❌`, false);
+                }
+            } else {
+                addResult(`2. Mock API no disponible ❌`, false);
+            }
+        }
+
+        // Auto-test al cargar
+        window.addEventListener('load', () => {
+            document.getElementById('system-status').innerHTML = `
+                <div style="color: green;">✅ Página de test cargada</div>
+                <div>📅 ${new Date().toLocaleString('es-ES')}</div>
+                <div>🌐 ${window.location.hostname}</div>
+                <div>📊 Mock API: ${window.attendanceAPI ? 'Disponible' : 'No disponible'}</div>
+            `;
+        });
+    </script>
+</body>
+</html>

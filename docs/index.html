@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Asistencia QR - I.E. Antonia Moreno de Cáceres</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .card {
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #c5a351, #e9d69a);
+            color: #1e293b;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(197,163,81,0.4);
+        }
+        .status {
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .instructions {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        .instructions ol {
+            color: #4a5568;
+        }
+        .instructions ol li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🏫 Sistema de Asistencia QR</h1>
+        <p class="subtitle">Institución Educativa Antonia Moreno de Cáceres N.º 5090</p>
+        
+        <div class="status">
+            <strong>✅ Sistema Activo</strong><br>
+            Funcionando en GitHub Pages con simulación en tiempo real
+        </div>
+        
+        <div class="buttons">
+            <a href="web/dashboard.html" class="btn" target="_blank">
+                📊 Dashboard Ejecutivo
+            </a>
+            <a href="web/test-qr.html" class="btn" target="_blank"> 
+                📱 Generador de QR
+            </a>
+            <a href="web/test-system.html" class="btn" target="_blank" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                🧪 Test del Sistema
+            </a>
+        </div>
+        
+        <div class="status">
+            <strong>🔗 Enlaces Directos:</strong><br>
+            Dashboard: <a href="https://stylo3066.github.io/attendance-qr-app/web/dashboard.html" target="_blank">https://stylo3066.github.io/attendance-qr-app/web/dashboard.html</a><br>
+            QR Generator: <a href="https://stylo3066.github.io/attendance-qr-app/web/test-qr.html" target="_blank">https://stylo3066.github.io/attendance-qr-app/web/test-qr.html</a>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Instrucciones de Uso</h3>
+            <ol>
+                <li><strong>Generar QR:</strong> Ve a "Generador de QR", selecciona un profesor y genera su código QR</li>
+                <li><strong>Simular Escaneo:</strong> Usa el botón "🧪 Simular Escaneo" para probar el sistema</li>
+                <li><strong>Ver Registros:</strong> Ve a "Dashboard Ejecutivo" para ver todos los registros de asistencia</li>
+                <li><strong>App Móvil:</strong> La app Flutter se conectará automáticamente a este sistema en GitHub Pages</li>
+            </ol>
+        </div>
+        
+        <div class="instructions">
+            <h3>🔧 Para Desarrollo Local</h3>
+            <ol>
+                <li>Ejecuta <code>cd vercel-proxy && node server.js</code> en tu PC</li>
+                <li>La app móvil detectará automáticamente el servidor local en <code>192.168.100.7:3000</code></li>
+                <li>Los QRs funcionarán con el servidor real con base de datos persistente</li>
+            </ol>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px; color: #666; font-size: 0.9rem;">
+            <p>Sistema desarrollado para control de asistencia docente</p>
+            <p>Versión GitHub Pages - Datos simulados en tiempo real</p>
+        </div>
+    </div>
+
+    <script>
+        // Mostrar información de debug
+        console.log('🚀 Sistema de Asistencia QR cargado');
+        console.log('📍 Entorno:', window.location.hostname);
+        console.log('🔗 Dashboard:', window.location.origin + '/attendance-qr-app/web/dashboard.html');
+        console.log('📱 QR Generator:', window.location.origin + '/attendance-qr-app/web/test-qr.html');
+    </script>
+</body>
+</html>
