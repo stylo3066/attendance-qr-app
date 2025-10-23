@@ -268,7 +268,7 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            '✅ Último registro:',
+                            'Último registro:',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.green,
@@ -291,7 +291,7 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text(
-                        '📱 Instrucciones:\n1. Presiona "Iniciar Scanner"\n2. Enfoca el QR del profesor\n3. El registro se guardará automáticamente',
+                        'Instrucciones:\n1. Presiona "Iniciar Scanner"\n2. Enfoca el QR del profesor\n3. El registro se guardará automáticamente',
                         style: TextStyle(color: Colors.blue),
                       ),
                     ),
@@ -406,7 +406,7 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
     // Mostrar mensaje de éxito
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ Profesor registrado correctamente')),
+        const SnackBar(content: Text('Profesor registrado correctamente')),
       );
     }
   }
@@ -468,7 +468,8 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
           await prefs.setString('HMAC_SECRET', hmacSecret);
         }
       }
-      debugPrint('Config loaded: FUNCTION_URL=${functionUrl.isNotEmpty}, HMAC_SECRET=${hmacSecret.isNotEmpty}');
+      debugPrint(
+          'Config loaded: FUNCTION_URL=${functionUrl.isNotEmpty}, HMAC_SECRET=${hmacSecret.isNotEmpty}');
       // Tras cargar configuración, intentar sincronizar pendientes si aplica
       if (functionUrl.isNotEmpty && hmacSecret.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -489,9 +490,8 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
       for (final p in ports) {
         try {
           final uri = Uri.parse('http://$host:$p/port');
-          final resp = await http
-              .get(uri)
-              .timeout(const Duration(milliseconds: 900));
+          final resp =
+              await http.get(uri).timeout(const Duration(milliseconds: 900));
           if (resp.statusCode == 200) {
             final data = jsonDecode(resp.body) as Map<String, dynamic>;
             final ip = data['ip']?.toString() ?? host;
@@ -540,7 +540,8 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
           children: [
             TextField(
               controller: urlController,
-              decoration: const InputDecoration(labelText: 'FUNCTION_URL (HTTPS)'),
+              decoration:
+                  const InputDecoration(labelText: 'FUNCTION_URL (HTTPS)'),
             ),
             TextField(
               controller: secretController,
@@ -560,7 +561,8 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
               final secret = secretController.text.trim();
               await _saveConfig(url, secret);
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Configuración guardada')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Configuración guardada')));
             },
             child: const Text('Guardar'),
           ),

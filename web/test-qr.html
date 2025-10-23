@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="QR Asistencia" />
-  <title>QR de Prueba - Asistencia Profesores</title>
+  <title>Generador QR - Asistencia Profesores</title>
   
   <!-- Preload crítico para mejor rendimiento -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
@@ -265,13 +265,13 @@
         let options = '<option value="">-- Seleccione un profesor --</option>';
         
         if(primaria.length > 0) {
-          options += '<optgroup label="🎒 PRIMARIA">';
+          options += '<optgroup label="PRIMARIA">';
           options += primaria.map(p=>`<option value="${p.id}">${p.id} — ${p.apellido}, ${p.nombre}</option>`).join('');
           options += '</optgroup>';
         }
         
         if(secundaria.length > 0) {
-          options += '<optgroup label="🎓 SECUNDARIA">';
+          options += '<optgroup label="SECUNDARIA">';
           options += secundaria.map(p=>`<option value="${p.id}">${p.id} — ${p.apellido}, ${p.nombre}</option>`).join('');
           options += '</optgroup>';
         }
@@ -482,17 +482,18 @@
   </head>
 <body>
   <div class="card">
-    <h1>QR de Prueba – Asistencia</h1>
+    <h1>Generador QR – Asistencia</h1>
     <p>Selecciona un profesor y escanea el QR con la app móvil para registrar asistencia. <span class="badge">Texto QR = ID del profesor</span></p>
     <div class="row">
       <select id="prof" style="flex:1"></select>
       <button onclick="onGenerate()">Generar QR</button>
-      <button onclick="renderQR('TEST123')" style="background:#28a745; border-color:#28a745;">Prueba</button>
+
     </div>
     <div class="qrbox" id="qr"></div>
     <p style="margin-top:10px"><small>Contenido del QR: <strong id="sample">—</strong></small></p>
   </div>
 </body>
 </html>
-< ! - -   A c t u a l i z a d o :   1 0 / 2 2 / 2 0 2 5   2 2 : 4 9 : 4 1   - - >  
+< ! - -   A c t u a l i z a d o :   1 0 / 2 2 / 2 0 2 5   2 2 : 4 9 : 4 1   - - > 
+ 
  
