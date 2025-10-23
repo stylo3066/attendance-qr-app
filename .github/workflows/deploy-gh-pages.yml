@@ -1,0 +1,35 @@
+name: Deploy Flutter Web to GitHub Pages
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Build Flutter Web
+        run: flutter build web --release --base-href=/attendance-qr-app/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build/web
+          publish_branch: gh-pages
+          force_orphan: true

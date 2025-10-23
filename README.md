@@ -1,3 +1,30 @@
+# attendance-qr-app
+
+## Deploy en GitHub Pages (Flutter Web)
+
+Este repo incluye un workflow para publicar la app Flutter Web en GitHub Pages.
+
+Pasos:
+
+1) Habilita GitHub Actions en tu repo (si no lo está).
+2) Haz push con el archivo del workflow `.github/workflows/deploy-gh-pages.yml` (ya agregado en este commit).
+3) En Settings > Pages, selecciona:
+	- Source: Deploy from a branch
+	- Branch: `gh-pages` / `/ (root)`
+4) Haz un commit/push a `master` (o `main`) para disparar el workflow.
+5) La web quedará publicada en:
+	https://<tu_usuario>.github.io/attendance-qr-app/
+
+Notas:
+- El build usa `--base-href=/attendance-qr-app/` para que los assets se sirvan correctamente en Pages.
+- La app necesita un endpoint público (FUNCTION_URL) para registrar asistencia. GitHub Pages es estático, así que usa un backend HTTPS (por ejemplo Vercel) y configura la URL desde la pantalla de Ajustes dentro de la app.
+
+### Backend sugerido (Vercel)
+Puedes usar la carpeta `vercel-proxy/` como backend sin Firestore real:
+1) Despliega en Vercel y define la variable `HMAC_SECRET`.
+2) Obtén la URL pública (https://...vercel.app/api/attendance).
+3) En la app (GitHub Pages), abre Ajustes y pega esa URL en FUNCTION_URL.
+
 # Control de Asistencia de Profesores mediante QR
 
 Esta es una app móvil creada con Flutter para registrar la asistencia de profesores escaneando códigos QR.
