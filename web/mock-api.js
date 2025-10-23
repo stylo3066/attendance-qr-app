@@ -91,82 +91,8 @@ class AttendanceAPI {
   
   // Inicializar con datos de demostración
   initializeDemoData() {
-    const existingData = this.getAttendance();
-    if (existingData.length === 0) {
-      // Crear algunos registros de demostración
-      const today = new Date();
-      const demoRecords = [
-        // Registros REALES llegados desde la app Flutter
-        {
-          id: '1729664840893',
-          qrCode: '47045355',
-          deviceId: 'flutter_app',
-          timestamp: '2025-10-23T07:27:20.893Z',
-          professorId: '47045355',
-          professorFullName: 'ALOCILLA FERNANDEZ, FRANCO ANDREE',
-          subject: 'Matemática',
-          serverTimestamp: '2025-10-23T07:27:20.893Z',
-          date: '2025-10-23',
-          time: '07:27:20',
-          hour: 7,
-          type: 'ENTRADA',
-          status: 'PUNTUAL',
-          verified: true
-        },
-        {
-          id: '1729664855726',
-          qrCode: '47045355',
-          deviceId: 'flutter_app',
-          timestamp: '2025-10-23T07:27:35.726Z',
-          professorId: '47045355',
-          professorFullName: 'ALOCILLA FERNANDEZ, FRANCO ANDREE',
-          subject: 'Matemática',
-          serverTimestamp: '2025-10-23T07:27:35.726Z',
-          date: '2025-10-23',
-          time: '07:27:35',
-          hour: 7,
-          type: 'SALIDA',
-          status: 'PUNTUAL',
-          verified: true
-        },
-        // Datos demo adicionales
-        {
-          id: Date.now().toString(),
-          qrCode: '40770563',
-          deviceId: 'demo-device-1',
-          timestamp: new Date(today.getTime() - 3600000).toISOString(), // 1 hora atrás
-          professorId: '40770563',
-          professorFullName: 'CANO AVILA, ROCIO PILAR',
-          subject: 'Primaria',
-          serverTimestamp: new Date(today.getTime() - 3600000).toISOString(),
-          date: today.toISOString().split('T')[0],
-          time: new Date(today.getTime() - 3600000).toTimeString().split(' ')[0],
-          hour: today.getHours() - 1,
-          type: 'ENTRADA',
-          status: 'PUNTUAL',
-          verified: true
-        },
-        {
-          id: (Date.now() + 1).toString(),
-          qrCode: '40770563',
-          deviceId: 'demo-device-2',
-          timestamp: new Date(today.getTime() - 1800000).toISOString(), // 30 min atrás
-          professorId: '40770563',
-          professorFullName: 'CANO AVILA, ROCIO PILAR',
-          subject: 'Primaria',
-          serverTimestamp: new Date(today.getTime() - 1800000).toISOString(),
-          date: today.toISOString().split('T')[0],
-          time: new Date(today.getTime() - 1800000).toTimeString().split(' ')[0],
-          hour: today.getHours(),
-          type: 'ENTRADA',
-          status: 'TARDANZA',
-          verified: true
-        }
-      ];
-      
-      localStorage.setItem(this.baseKey + 'records', JSON.stringify(demoRecords));
-      console.log('📊 Datos de demostración inicializados');
-    }
+    // No inicializar datos de prueba - dashboard debe estar limpio
+    console.log('📊 Mock API inicializado sin datos de prueba');
   }
 }
 
