@@ -501,59 +501,89 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // Intentar configuración automática inteligente
-      String defaultBackendUrl;
+      // PRIORIZAR SERVIDOR LOCAL SIEMPRE PRIMERO
+      debugPrint('🔍 Buscando servidor local primero...');
 
-      // 1. Intentar servidor en producción (Railway/Vercel/GitHub Pages)
-      final productionUrls = [
-        'https://stylo3066.github.io/attendance-qr-app/api/attendance',
-        'https://attendance-qr-app-production.up.railway.app/api/attendance',
-        'https://vercel-proxy-git-main-stylo3066s-projects.vercel.app/api/attendance',
+      // 1. INTENTAR SERVIDOR LOCAL PRIMERO (más rápido y confiable)
+      final localUrls = [
+        'http://192.168.100.7:3000/api/attendance',
+        'http://localhost:3000/api/attendance',
+        'http://127.0.0.1:3000/api/attendance',
       ];
 
-      String? workingUrl;
-      for (final url in productionUrls) {
+      String workingUrl =
+          'http://192.168.100.7:3000/api/attendance'; // Valor por defecto
+
+      // Probar servidores locales con timeout corto
+      for (final url in localUrls) {
         try {
+          debugPrint('⚡ Probando servidor local: $url');
           final resp = await http
               .get(Uri.parse(url.replaceAll('/api/attendance', '/health')))
-              .timeout(const Duration(seconds: 3));
+              .timeout(const Duration(seconds: 2));
           if (resp.statusCode == 200) {
             workingUrl = url;
-            debugPrint('✅ Servidor online encontrado: $url');
+            debugPrint('✅ Servidor local encontrado: $url');
             break;
           }
         } catch (e) {
-          debugPrint('❌ Servidor no disponible: $url');
+          debugPrint('❌ Servidor local no disponible: $url - $e');
         }
       }
 
-      // 2. Si no hay servidor online, usar local
-      if (workingUrl == null) {
-        // Intentar autodetección de servidor local
+      // 2. Si no encontramos servidor local, intentar autodetección
+      if (workingUrl == 'http://192.168.100.7:3000/api/attendance') {
+        debugPrint('🔍 Intentando autodetección de servidor local...');
         final discovered = await _autoDiscoverLocalProxy();
         if (discovered) {
-          // Ya se configuró en _autoDiscoverLocalProxy
+          debugPrint('✅ Servidor local autodescubierto');
           return;
-        } else {
-          // Fallback a configuración local conocida
-          workingUrl = 'http://192.168.100.7:3000/api/attendance';
-          debugPrint('⚠️ Usando configuración local por defecto');
         }
+      }
+
+      // 3. Solo como último recurso, intentar servidores online
+      if (workingUrl == 'http://192.168.100.7:3000/api/attendance') {
+        debugPrint('🌐 No hay servidor local. Probando servidores online...');
+        final productionUrls = [
+          'https://attendance-qr-app-production.up.railway.app/api/attendance',
+          'https://vercel-proxy-git-main-stylo3066s-projects.vercel.app/api/attendance',
+        ];
+
+        for (final url in productionUrls) {
+          try {
+            debugPrint('🌐 Probando servidor online: $url');
+            final resp = await http
+                .get(Uri.parse(url.replaceAll('/api/attendance', '/health')))
+                .timeout(const Duration(seconds: 5));
+            if (resp.statusCode == 200) {
+              workingUrl = url;
+              debugPrint('✅ Servidor online encontrado: $url');
+              break;
+            }
+          } catch (e) {
+            debugPrint('❌ Servidor online no disponible: $url - $e');
+          }
+        }
+      }
+
+      // 4. Si nada funciona, mantener configuración local por defecto
+      if (workingUrl == 'http://192.168.100.7:3000/api/attendance') {
+        debugPrint(
+            '⚠️ Usando configuración local por defecto como último recurso');
       }
 
       const defaultSecret = 'dev_secret';
-      defaultBackendUrl = workingUrl;
 
-      // Guardar configuración
-      await prefs.setString('FUNCTION_URL', defaultBackendUrl);
+      // Guardar configuración (workingUrl nunca puede ser null aquí)
+      await prefs.setString('FUNCTION_URL', workingUrl);
       await prefs.setString('HMAC_SECRET', defaultSecret);
 
       setState(() {
-        functionUrl = defaultBackendUrl;
+        functionUrl = workingUrl;
         hmacSecret = defaultSecret;
       });
 
-      debugPrint('✅ AUTO-CONFIGURADO: $defaultBackendUrl');
+      debugPrint('✅ AUTO-CONFIGURADO: $workingUrl');
       debugPrint('   Secreto: $defaultSecret');
 
       // Tras cargar configuración, intentar sincronizar pendientes si aplica
