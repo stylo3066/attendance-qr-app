@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const AttendanceQRApp());
@@ -314,6 +315,83 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
                         style: TextStyle(color: Colors.blue),
                       ),
                     ),
+
+                  const SizedBox(height: 20),
+
+                  // Botones para abrir páginas web
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.purple[50],
+                      border: Border.all(color: Colors.purple),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Páginas Web - Dashboard:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () => _openWebPage(
+                                    'https://stylo3066.github.io/attendance-qr-app/docs/dashboard.html'),
+                                icon: const Icon(Icons.dashboard, size: 16),
+                                label: const Text('Dashboard',
+                                    style: TextStyle(fontSize: 12)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.purple,
+                                  foregroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () => _openWebPage(
+                                    'https://stylo3066.github.io/attendance-qr-app/docs/test-qr.html'),
+                                icon: const Icon(Icons.qr_code, size: 16),
+                                label: const Text('Gen QR',
+                                    style: TextStyle(fontSize: 12)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange,
+                                  foregroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () => _openWebPage(
+                                    'https://stylo3066.github.io/attendance-qr-app/docs/test-system.html'),
+                                icon: const Icon(Icons.bug_report, size: 16),
+                                label: const Text('Test',
+                                    style: TextStyle(fontSize: 12)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.teal,
+                                  foregroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -881,6 +959,29 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
       );
     } catch (e) {
       debugPrint('Error mostrando registros: $e');
+    }
+  }
+
+  // Método para abrir páginas web
+  Future<void> _openWebPage(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('No se puede abrir: $url')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error abriendo URL: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al abrir la página web')),
+        );
+      }
     }
   }
 }
