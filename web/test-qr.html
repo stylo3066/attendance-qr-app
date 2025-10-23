@@ -313,10 +313,11 @@
           
           box.appendChild(canvas);
           document.getElementById('sample').textContent = text;
-          console.log('✅ QR generado con QRious');
+          document.getElementById('downloadBtn').style.display = 'block';
+          console.log('QR generado con QRious');
           return;
         } catch (e) {
-          console.log('❌ Error con QRious:', e);
+          console.log('Error con QRious:', e);
         }
       }
 
@@ -340,14 +341,15 @@
             
             box.appendChild(canvas);
             document.getElementById('sample').textContent = text;
-            console.log('✅ QR generado con qrcode.js');
+            document.getElementById('downloadBtn').style.display = 'block';
+            console.log('QR generado con qrcode.js');
           }).catch(e => {
-            console.log('❌ Error con qrcode.js:', e);
+            console.log('Error con qrcode.js:', e);
             tryKjua();
           });
           return;
         } catch (e) {
-          console.log('❌ Error con qrcode.js:', e);
+          console.log('Error con qrcode.js:', e);
         }
       }
 
@@ -375,10 +377,11 @@
             
             box.appendChild(canvas);
             document.getElementById('sample').textContent = text;
-            console.log('✅ QR generado con kjua');
+            document.getElementById('downloadBtn').style.display = 'block';
+            console.log('QR generado con kjua');
             return;
           } catch (e) {
-            console.log('❌ Error con kjua:', e);
+            console.log('Error con kjua:', e);
           }
         }
         tryExternalAPI();
@@ -417,18 +420,19 @@
           img.onload = function() {
             box.appendChild(img);
             document.getElementById('sample').textContent = text;
-            console.log(`✅ QR generado con API externa (intento ${apiIndex})`);
+            document.getElementById('downloadBtn').style.display = 'block';
+            console.log(`QR generado con API externa (intento ${apiIndex})`);
           };
           
           img.onerror = function() {
-            console.log(`❌ API ${apiIndex} falló, probando siguiente...`);
+            console.log(`API ${apiIndex} falló, probando siguiente...`);
             setTimeout(tryNextAPI, 500);
           };
           
           tryNextAPI();
           return;
         } catch (e) {
-          console.log('❌ Error con APIs externas:', e);
+          console.log('Error con APIs externas:', e);
           fallbackQR();
         }
       }
@@ -437,7 +441,7 @@
       function fallbackQR() {
         box.innerHTML = `
           <div style="text-align:center; padding:20px; border:2px solid #e2e8f0; border-radius:8px; background:white;">
-            <div style="font-size:2rem; margin-bottom:10px;">📱</div>
+            <div style="font-size:2rem; margin-bottom:10px;">QR</div>
             <div style="font-weight:bold; margin-bottom:8px;">Código QR no disponible</div>
             <div style="font-size:0.9rem; color:#666; margin-bottom:15px;">
               Escanea este código manualmente:
@@ -451,7 +455,7 @@
           </div>
         `;
         document.getElementById('sample').textContent = text;
-        console.log('⚠️ Usando fallback textual');
+        console.log('Usando fallback textual');
       }
 
       // Iniciar con kjua si QRious no está disponible
@@ -459,6 +463,30 @@
         tryKjua();
       }
     }
+    
+    function downloadQR() {
+      const qrContainer = document.getElementById('qr');
+      const canvas = qrContainer.querySelector('canvas');
+      const img = qrContainer.querySelector('img');
+      
+      if (canvas) {
+        // Descargar desde canvas
+        const link = document.createElement('a');
+        link.download = `QR_${document.getElementById('sample').textContent}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } else if (img) {
+        // Descargar desde imagen
+        const link = document.createElement('a');
+        link.download = `QR_${document.getElementById('sample').textContent}.png`;
+        link.href = img.src;
+        link.target = '_blank';
+        link.click();
+      } else {
+        alert('No hay QR disponible para descargar');
+      }
+    }
+    
     function onGenerate(){
       const id = document.getElementById('prof').value || 'PROF_001';
       console.log('Generando QR para:', id);
@@ -487,13 +515,14 @@
     <div class="row">
       <select id="prof" style="flex:1"></select>
       <button onclick="onGenerate()">Generar QR</button>
-
     </div>
     <div class="qrbox" id="qr"></div>
+    <div class="row" style="margin-top:10px">
+      <button id="downloadBtn" onclick="downloadQR()" style="background:#17a2b8; border-color:#17a2b8; display:none;">Descargar PNG</button>
+    </div>
     <p style="margin-top:10px"><small>Contenido del QR: <strong id="sample">—</strong></small></p>
   </div>
 </body>
 </html>
-< ! - -   A c t u a l i z a d o :   1 0 / 2 2 / 2 0 2 5   2 2 : 4 9 : 4 1   - - > 
  
  
