@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/railwayapp/railway-json-schema/main/schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "cd vercel-proxy && npm install"
+  },
+  "deploy": {
+    "startCommand": "cd vercel-proxy && node server.js",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
+}
