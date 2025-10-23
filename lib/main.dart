@@ -98,7 +98,7 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
         children: [
           // Scanner de cámara
           Expanded(
-            flex: 3,
+            flex: 2,
             child: Container(
               margin: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -193,92 +193,17 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
 
           // Controles
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  // Estado de conexión / Config actual
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.green[50],
-                      border: Border.all(color: Colors.green),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '✅ Servidor Local Activo',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'Conectado a tu PC (WiFi)',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Acciones rápidas de configuración
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _openSettingsDialog,
-                          icon: const Icon(Icons.settings),
-                          label: const Text('Configurar sincronización'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.indigo,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _testConnection,
-                          icon: const Icon(Icons.wifi),
-                          label: const Text('Probar conexión'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Botón de scanner
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton.icon(
-                      onPressed: _toggleScanner,
-                      icon:
-                          Icon(isScanning ? Icons.stop : Icons.qr_code_scanner),
-                      label: Text(
-                          isScanning ? 'Detener Scanner' : 'Iniciar Scanner'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isScanning ? Colors.red : Colors.blue,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Último código escaneado
-                  if (qrText != null)
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // Estado de conexión / Config actual
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
                         color: Colors.green[50],
                         border: Border.all(color: Colors.green),
@@ -288,111 +213,189 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Último registro:',
+                            '✅ Servidor Local Activo',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.green,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text('Código: $qrText'),
-                          Text('Profesor registrado exitosamente'),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Conectado a tu PC (WiFi)',
+                            style: TextStyle(fontSize: 12),
+                          ),
                         ],
                       ),
                     ),
+                    // Acciones rápidas de configuración
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _openSettingsDialog,
+                            icon: const Icon(Icons.settings),
+                            label: const Text('Configurar sincronización'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.indigo,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _testConnection,
+                            icon: const Icon(Icons.wifi),
+                            label: const Text('Probar conexión'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
 
-                  if (qrText == null)
+                    // Botón de scanner
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        onPressed: _toggleScanner,
+                        icon: Icon(
+                            isScanning ? Icons.stop : Icons.qr_code_scanner),
+                        label: Text(
+                            isScanning ? 'Detener Scanner' : 'Iniciar Scanner'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              isScanning ? Colors.red : Colors.blue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Último código escaneado
+                    if (qrText != null)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          border: Border.all(color: Colors.green),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Último registro:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text('Código: $qrText'),
+                            Text('Profesor registrado exitosamente'),
+                          ],
+                        ),
+                      ),
+
+                    if (qrText == null)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          border: Border.all(color: Colors.blue),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Instrucciones:\n1. Presiona "Iniciar Scanner"\n2. Enfoca el QR del profesor\n3. El registro se guardará automáticamente',
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                      ),
+
+                    const SizedBox(height: 20),
+
+                    // Botones para abrir páginas web
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        border: Border.all(color: Colors.blue),
+                        color: Colors.purple[50],
+                        border: Border.all(color: Colors.purple),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
-                        'Instrucciones:\n1. Presiona "Iniciar Scanner"\n2. Enfoca el QR del profesor\n3. El registro se guardará automáticamente',
-                        style: TextStyle(color: Colors.blue),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Páginas Web - Dashboard:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.purple,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _openWebPage(
+                                      'https://stylo3066.github.io/attendance-qr-app/dashboard.html'),
+                                  icon: const Icon(Icons.dashboard, size: 16),
+                                  label: const Text('Dashboard',
+                                      style: TextStyle(fontSize: 12)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.purple,
+                                    foregroundColor: Colors.white,
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 8),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _openWebPage(
+                                      'https://stylo3066.github.io/attendance-qr-app/test-qr.html'),
+                                  icon: const Icon(Icons.qr_code, size: 16),
+                                  label: const Text('Gen QR',
+                                      style: TextStyle(fontSize: 12)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 8),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _openWebPage(
+                                      'https://stylo3066.github.io/attendance-qr-app/test-system.html'),
+                                  icon: const Icon(Icons.bug_report, size: 16),
+                                  label: const Text('Test',
+                                      style: TextStyle(fontSize: 12)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal,
+                                    foregroundColor: Colors.white,
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 8),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-
-                  const SizedBox(height: 20),
-
-                  // Botones para abrir páginas web
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.purple[50],
-                      border: Border.all(color: Colors.purple),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Páginas Web - Dashboard:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: () => _openWebPage(
-                                    'https://stylo3066.github.io/attendance-qr-app/docs/dashboard.html'),
-                                icon: const Icon(Icons.dashboard, size: 16),
-                                label: const Text('Dashboard',
-                                    style: TextStyle(fontSize: 12)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.purple,
-                                  foregroundColor: Colors.white,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: () => _openWebPage(
-                                    'https://stylo3066.github.io/attendance-qr-app/docs/test-qr.html'),
-                                icon: const Icon(Icons.qr_code, size: 16),
-                                label: const Text('Gen QR',
-                                    style: TextStyle(fontSize: 12)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.orange,
-                                  foregroundColor: Colors.white,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: () => _openWebPage(
-                                    'https://stylo3066.github.io/attendance-qr-app/docs/test-system.html'),
-                                icon: const Icon(Icons.bug_report, size: 16),
-                                label: const Text('Test',
-                                    style: TextStyle(fontSize: 12)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.teal,
-                                  foregroundColor: Colors.white,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
