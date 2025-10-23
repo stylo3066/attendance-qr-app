@@ -869,7 +869,8 @@
             const saved = localStorage.getItem('SERVER_URL');
             if (saved && /^https?:\/\//i.test(saved)) return saved;
         }catch(_){/* ignore */}
-        return window.location.origin;
+        // Backend por defecto en Render.com (desplegado desde GitHub)
+        return 'https://attendance-qr-backend.onrender.com';
     })();
         let allAttendanceData = [];
         let filteredData = [];

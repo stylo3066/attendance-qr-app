@@ -203,36 +203,25 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
                     padding: const EdgeInsets.all(12),
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
-                      color: (functionUrl.isNotEmpty && hmacSecret.isNotEmpty)
-                          ? Colors.green[50]
-                          : Colors.blue[50],
-                      border: Border.all(
-                        color: (functionUrl.isNotEmpty && hmacSecret.isNotEmpty)
-                            ? Colors.green
-                            : Colors.blue,
-                      ),
+                      color: Colors.green[50],
+                      border: Border.all(color: Colors.green),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          (functionUrl.isNotEmpty && hmacSecret.isNotEmpty)
-                              ? '✅ Modo: Con servidor'
-                              : '📱 Modo: Offline/Demo (funcional)',
+                        const Text(
+                          '✅ Backend Online Activo',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: (functionUrl.isNotEmpty &&
-                                    hmacSecret.isNotEmpty)
-                                ? Colors.green
-                                : Colors.blue,
+                            color: Colors.green,
                           ),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          (functionUrl.isEmpty)
-                              ? 'Los registros se guardan localmente en tu dispositivo. ¡Funciona sin internet!'
-                              : 'URL: ${functionUrl}',
+                          functionUrl.contains('onrender.com')
+                              ? 'Servidor: Render.com (público)'
+                              : 'Servidor: ${functionUrl}',
                           style: const TextStyle(fontSize: 12),
                         ),
                       ],
@@ -513,24 +502,28 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
   Future<void> _loadConfig() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+
+      // URL del backend público en Render.com (se despliega automáticamente desde GitHub)
+      const defaultBackendUrl =
+          'https://attendance-qr-backend.onrender.com/api/attendance';
+      const defaultSecret = 'dev_secret';
+
       setState(() {
-        functionUrl = prefs.getString('FUNCTION_URL') ?? '';
-        hmacSecret = prefs.getString('HMAC_SECRET') ?? '';
+        functionUrl = prefs.getString('FUNCTION_URL') ?? defaultBackendUrl;
+        hmacSecret = prefs.getString('HMAC_SECRET') ?? defaultSecret;
       });
-      // Si no hay configuración previa, intentar autodetectar el proxy local
-      if (functionUrl.isEmpty || hmacSecret.isEmpty) {
-        final found = await _autoDiscoverLocalProxy();
-        if (!found) {
-          // Como último recurso, configurar secreto por defecto y dejar URL vacía
-          // para evitar enviar datos a endpoints externos no controlados.
-          hmacSecret = hmacSecret.isNotEmpty ? hmacSecret : 'dev_secret';
-          await prefs.setString('HMAC_SECRET', hmacSecret);
-          debugPrint(
-              'ℹ️ No se detectó proxy local. Configure FUNCTION_URL en Ajustes.');
-        }
+
+      // Guardar valores por defecto si no existen
+      if (!prefs.containsKey('FUNCTION_URL')) {
+        await prefs.setString('FUNCTION_URL', defaultBackendUrl);
       }
-      debugPrint(
-          'Config loaded: FUNCTION_URL=${functionUrl.isNotEmpty}, HMAC_SECRET=${hmacSecret.isNotEmpty}');
+      if (!prefs.containsKey('HMAC_SECRET')) {
+        await prefs.setString('HMAC_SECRET', defaultSecret);
+      }
+
+      debugPrint('✅ Configuración cargada: Backend online listo');
+      debugPrint('   URL: $functionUrl');
+
       // Tras cargar configuración, intentar sincronizar pendientes si aplica
       if (functionUrl.isNotEmpty && hmacSecret.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -672,63 +665,60 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
   }
 
   Future<void> _sendToServer(Map<String, dynamic> record) async {
-    // MODO DEMO/OFFLINE: Funciona sin servidor, solo guarda localmente
-    // Si quieres sincronizar con un servidor, configura FUNCTION_URL en Ajustes
-
     if (functionUrl.isEmpty || hmacSecret.isEmpty) {
-      // Modo offline: registro guardado localmente, mostrar éxito
-      debugPrint('✅ Modo offline: registro guardado localmente');
+      debugPrint('⚠️ Sin configuración de servidor');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Asistencia registrada (modo offline)'),
-            backgroundColor: Colors.green,
-          ),
+          const SnackBar(content: Text('⚠️ Configura el servidor en Ajustes')),
         );
       }
+      await _enqueuePending(record);
       return;
     }
 
-    // Intentar sincronizar con servidor si está configurado
+    // Enviar al servidor ONLINE
     final signature = _signRecord(record);
     try {
+      debugPrint('📤 Enviando a: $functionUrl');
       final resp = await http
           .post(Uri.parse(functionUrl),
               headers: {'Content-Type': 'application/json'},
               body: jsonEncode({'signature': signature, 'data': record}))
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 15));
 
       if (resp.statusCode == 200) {
-        debugPrint('Registro sincronizado OK con servidor');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ Asistencia sincronizada con servidor'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else {
-        debugPrint('Fallo al sincronizar (${resp.statusCode}): ${resp.body}');
-        // Guardado localmente de todos modos
+        final body = jsonDecode(resp.body);
+        debugPrint('✅ Registro exitoso en servidor');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content:
-                  Text('⚠️ Guardado localmente (servidor: ${resp.statusCode})'),
-              backgroundColor: Colors.orange,
+                  Text('✅ Asistencia registrada: ${body['professor'] ?? 'OK'}'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
             ),
+          );
+        }
+      } else {
+        debugPrint('❌ Error ${resp.statusCode}: ${resp.body}');
+        if (mounted) {
+          final msg = resp.statusCode == 401
+              ? 'Clave HMAC inválida'
+              : resp.statusCode == 404
+                  ? 'QR no reconocido'
+                  : 'Error del servidor (${resp.statusCode})';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('❌ $msg'), backgroundColor: Colors.red),
           );
         }
         await _enqueuePending(record);
       }
     } catch (e) {
-      debugPrint('Error de red: $e');
-      // Guardado localmente de todos modos
+      debugPrint('❌ Error de conexión: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✅ Guardado localmente (sin conexión a servidor)'),
+            content: Text('⚠️ Sin conexión. Guardado localmente.'),
             backgroundColor: Colors.orange,
           ),
         );
