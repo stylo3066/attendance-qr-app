@@ -501,11 +501,50 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // FORZAR configuración automática SIEMPRE
-      const defaultBackendUrl = 'http://192.168.100.7:3000/api/attendance';
-      const defaultSecret = 'dev_secret';
+      // Intentar configuración automática inteligente
+      String defaultBackendUrl;
 
-      // SOBRESCRIBIR cualquier configuración anterior
+      // 1. Intentar servidor en producción (Railway/Vercel/GitHub Pages)
+      final productionUrls = [
+        'https://stylo3066.github.io/attendance-qr-app/api/attendance',
+        'https://attendance-qr-app-production.up.railway.app/api/attendance',
+        'https://vercel-proxy-git-main-stylo3066s-projects.vercel.app/api/attendance',
+      ];
+
+      String? workingUrl;
+      for (final url in productionUrls) {
+        try {
+          final resp = await http
+              .get(Uri.parse(url.replaceAll('/api/attendance', '/health')))
+              .timeout(const Duration(seconds: 3));
+          if (resp.statusCode == 200) {
+            workingUrl = url;
+            debugPrint('✅ Servidor online encontrado: $url');
+            break;
+          }
+        } catch (e) {
+          debugPrint('❌ Servidor no disponible: $url');
+        }
+      }
+
+      // 2. Si no hay servidor online, usar local
+      if (workingUrl == null) {
+        // Intentar autodetección de servidor local
+        final discovered = await _autoDiscoverLocalProxy();
+        if (discovered) {
+          // Ya se configuró en _autoDiscoverLocalProxy
+          return;
+        } else {
+          // Fallback a configuración local conocida
+          workingUrl = 'http://192.168.100.7:3000/api/attendance';
+          debugPrint('⚠️ Usando configuración local por defecto');
+        }
+      }
+
+      const defaultSecret = 'dev_secret';
+      defaultBackendUrl = workingUrl;
+
+      // Guardar configuración
       await prefs.setString('FUNCTION_URL', defaultBackendUrl);
       await prefs.setString('HMAC_SECRET', defaultSecret);
 
@@ -514,8 +553,8 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
         hmacSecret = defaultSecret;
       });
 
-      debugPrint('✅ AUTO-CONFIGURADO: http://192.168.100.7:3000');
-      debugPrint('   Secreto: dev_secret');
+      debugPrint('✅ AUTO-CONFIGURADO: $defaultBackendUrl');
+      debugPrint('   Secreto: $defaultSecret');
 
       // Tras cargar configuración, intentar sincronizar pendientes si aplica
       if (functionUrl.isNotEmpty && hmacSecret.isNotEmpty) {

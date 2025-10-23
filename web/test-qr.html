@@ -19,6 +19,7 @@
   <!-- PWA básico -->
   <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;QR Asistencia&quot;,&quot;short_name&quot;:&quot;QR&quot;,&quot;display&quot;:&quot;standalone&quot;}" />
   <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+  <script src="mock-api.js"></script>
   <style>
     :root{ --brand:#0f172a; --gold:#c5a351; }
     
@@ -501,6 +502,57 @@
       }, 100);
     }
     
+    // Función para simular el escaneo de QR (para pruebas)
+    async function simulateQRScan() {
+      const professorId = document.getElementById('prof').value;
+      if (!professorId) {
+        alert('Primero selecciona un profesor');
+        return;
+      }
+      
+      // Simular datos que enviaría la app móvil
+      const mockData = {
+        signature: 'mock_signature_' + Date.now(),
+        data: {
+          qrCode: professorId,
+          deviceId: 'WebSimulator',
+          timestamp: new Date().toISOString(),
+          user: 'Usuario Demo'
+        }
+      };
+      
+      try {
+        console.log('🧪 Simulando escaneo QR...', mockData);
+        
+        // Determinar URL del servidor
+        let apiUrl;
+        if (window.location.hostname === 'stylo3066.github.io') {
+          apiUrl = window.location.origin + '/api/attendance';
+        } else {
+          apiUrl = 'http://192.168.100.7:3000/api/attendance';
+        }
+        
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(mockData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          alert(`✅ QR simulado exitosamente!\n\nProfesor: ${result.professor}\nMateria: ${result.subject}\n\n🔍 Ve al dashboard para ver el registro`);
+          console.log('✅ Resultado:', result);
+        } else {
+          alert(`❌ Error: ${result.error}`);
+          console.error('❌ Error:', result);
+        }
+      } catch (error) {
+        alert(`❌ Error de conexión: ${error.message}`);
+        console.error('❌ Error:', error);
+      }
+    }
+
     // Debug: verificar qué librerías están disponibles
     window.addEventListener('load', function() {
       console.log('QRious disponible:', !!window.QRious);
@@ -519,6 +571,7 @@
     <div class="qrbox" id="qr"></div>
     <div class="row" style="margin-top:10px">
       <button id="downloadBtn" onclick="downloadQR()" style="background:#17a2b8; border-color:#17a2b8; display:none;">Descargar PNG</button>
+      <button onclick="simulateQRScan()" style="background:#28a745; border-color:#28a745;">🧪 Simular Escaneo</button>
     </div>
     <p style="margin-top:10px"><small>Contenido del QR: <strong id="sample">—</strong></small></p>
   </div>
