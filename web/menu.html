@@ -2,7 +2,14 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <meta name="description" content="Menú principal del sistema de asistencia QR para profesores">
+    <meta name="theme-color" content="#667eea">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Asistencia QR">
     <title>Sistema de Asistencia QR - Menú Principal</title>
     <style>
         body {
@@ -46,12 +53,75 @@
             transition: all 0.3s ease;
             font-weight: 500;
         }
-        .menu-item:hover {
+        .menu-item:hover, .menu-item:focus {
             background: #667eea;
             color: white;
             border-color: #667eea;
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .menu-item:active {
+            transform: translateY(0);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .menu-item {
+                padding: 16px;
+                font-size: 1rem;
+            }
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            }
+            .container {
+                background: #2a2a2a;
+                color: #e5e5e5;
+            }
+            h1 {
+                color: #c5a351;
+            }
+            .subtitle {
+                color: #a1a1aa;
+            }
+            .menu-item {
+                background: #3a3a3a;
+                border-color: #555;
+                color: #e5e5e5;
+            }
+            .status {
+                background: #1e3a1e;
+                border-color: #4caf50;
+                color: #81c784;
+            }
+        }
+        
+        /* High contrast mode */
+        @media (prefers-contrast: high) {
+            .menu-item {
+                border-width: 3px;
+            }
+        }
+        
+        /* Reduce motion for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            .menu-item {
+                transition: none;
+            }
+            .menu-item:hover {
+                transform: none;
+            }
         }
         .menu-icon {
             font-size: 1.5rem;

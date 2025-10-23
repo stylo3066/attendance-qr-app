@@ -2,22 +2,204 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes" />
+  <meta name="description" content="Generador de códigos QR para sistema de asistencia de profesores" />
+  <meta name="theme-color" content="#c5a351" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="QR Asistencia" />
   <title>QR de Prueba - Asistencia Profesores</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Preload crítico para mejor rendimiento -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="preconnect" href="https://api.qrserver.com" />
+  
+  <!-- PWA básico -->
+  <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;QR Asistencia&quot;,&quot;short_name&quot;:&quot;QR&quot;,&quot;display&quot;:&quot;standalone&quot;}" />
   <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
   <style>
     :root{ --brand:#0f172a; --gold:#c5a351; }
-    body{ font-family:'Inter',system-ui,sans-serif; background:#f8fafc; margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; }
-    .card{ background:#fff; border-radius:16px; box-shadow:0 20px 40px rgba(0,0,0,.08); padding:24px; width:min(560px, 92vw); }
-    h1{ font-size:1.25rem; margin:0 0 10px; color:var(--brand) }
-    p{ color:#475569; margin:0 0 16px }
-    .row{ display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 18px }
-    select,button{ padding:12px 14px; font-family:inherit; border-radius:10px; border:1px solid #e2e8f0; }
-    button{ background:linear-gradient(135deg,var(--gold),#e9d69a); color:#1e293b; font-weight:600; cursor:pointer; border:1px solid rgba(197,163,81,.45) }
-    .qrbox{ display:grid; place-items:center; border:1px dashed #cbd5e1; border-radius:12px; padding:18px; min-height:280px; }
-    small{ color:#64748b }
-    .badge{ background:#ecfeff; color:#0369a1; border:1px solid #bae6fd; padding:2px 8px; border-radius:999px; font-size:.8rem }
+    
+    /* Reset y compatibilidad universal */
+    * { box-sizing: border-box; }
+    body{ 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+      background: #f8fafc; 
+      margin: 0; 
+      padding: 10px;
+      min-height: 100vh; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      line-height: 1.5;
+      -webkit-text-size-adjust: 100%;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .card{ 
+      background: #fff; 
+      border-radius: 16px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,.1); 
+      padding: 20px; 
+      width: 100%;
+      max-width: 560px;
+      margin: auto;
+    }
+    
+    h1{ 
+      font-size: clamp(1.1rem, 4vw, 1.5rem); 
+      margin: 0 0 10px; 
+      color: var(--brand);
+      text-align: center;
+    }
+    
+    p{ 
+      color: #475569; 
+      margin: 0 0 16px;
+      font-size: clamp(0.9rem, 2.5vw, 1rem);
+      text-align: center;
+    }
+    
+    .row{ 
+      display: flex; 
+      gap: 8px; 
+      flex-wrap: wrap; 
+      margin: 15px 0;
+      align-items: center;
+    }
+    
+    select, button{ 
+      padding: 12px 14px; 
+      font-family: inherit; 
+      border-radius: 10px; 
+      border: 2px solid #e2e8f0;
+      font-size: 14px;
+      min-height: 44px; /* Accesibilidad táctil */
+      transition: all 0.2s ease;
+    }
+    
+    select {
+      flex: 1;
+      min-width: 200px;
+      background: white;
+      cursor: pointer;
+    }
+    
+    select:focus, button:focus {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+    
+    button{ 
+      background: linear-gradient(135deg, var(--gold), #e9d69a); 
+      color: #1e293b; 
+      font-weight: 600; 
+      cursor: pointer; 
+      border: 2px solid rgba(197,163,81,.45);
+      white-space: nowrap;
+      min-width: 100px;
+      touch-action: manipulation; /* Mejor respuesta táctil */
+    }
+    
+    button:hover, button:focus {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(197,163,81,.3);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .qrbox{ 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px dashed #cbd5e1; 
+      border-radius: 12px; 
+      padding: 20px; 
+      min-height: 280px;
+      background: #fafafa;
+      overflow: hidden;
+    }
+    
+    .qrbox canvas, .qrbox img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+    
+    small{ 
+      color: #64748b;
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+    }
+    
+    .badge{ 
+      background: #ecfeff; 
+      color: #0369a1; 
+      border: 1px solid #bae6fd; 
+      padding: 4px 8px; 
+      border-radius: 999px; 
+      font-size: 0.8rem;
+      display: inline-block;
+      margin: 0 4px;
+    }
+    
+    /* Responsive breakpoints */
+    @media (max-width: 480px) {
+      .card {
+        padding: 15px;
+        margin: 5px;
+        border-radius: 12px;
+      }
+      
+      .row {
+        flex-direction: column;
+        gap: 12px;
+      }
+      
+      select, button {
+        width: 100%;
+        padding: 14px;
+        font-size: 16px; /* Evita zoom en iOS */
+      }
+      
+      .qrbox {
+        min-height: 250px;
+        padding: 15px;
+      }
+    }
+    
+    @media (max-width: 320px) {
+      .qrbox {
+        min-height: 200px;
+      }
+    }
+    
+    /* Modo oscuro */
+    @media (prefers-color-scheme: dark) {
+      body { background: #1a1a1a; }
+      .card { background: #2a2a2a; color: #e5e5e5; }
+      h1 { color: var(--gold); }
+      p { color: #a1a1aa; }
+      select, button { border-color: #404040; }
+      select { background: #2a2a2a; color: #e5e5e5; }
+      .qrbox { background: #1a1a1a; border-color: #404040; }
+      small { color: #a1a1aa; }
+    }
+    
+    /* Alto contraste */
+    @media (prefers-contrast: high) {
+      select, button { border-width: 3px; }
+      .qrbox { border-width: 3px; }
+    }
+    
+    /* Reduce motion para accesibilidad */
+    @media (prefers-reduced-motion: reduce) {
+      button { transition: none; }
+      button:hover { transform: none; }
+    }
   </style>
   <script>
     // Datos de profesores de demostración
@@ -48,59 +230,182 @@
         if(DEMO_PROFESSORS.length){ renderQR(DEMO_PROFESSORS[0].id); }
       }
     }
-    function renderQR(text){
+    function renderQR(text) {
       const box = document.getElementById('qr');
       box.innerHTML = '';
       
-      // Método 1: QRious (más confiable)
+      // Detectar tamaño óptimo según dispositivo
+      const isMobile = window.innerWidth <= 480;
+      const qrSize = isMobile ? Math.min(250, window.innerWidth - 80) : 260;
+      
+      console.log(`Generando QR para: ${text}, tamaño: ${qrSize}px`);
+      
+      // Método 1: QRious (Canvas - muy compatible)
       if (window.QRious) {
         try {
           const canvas = document.createElement('canvas');
           const qr = new window.QRious({
             element: canvas,
             value: text,
-            size: 260,
+            size: qrSize,
             background: 'white',
             foreground: 'black',
             level: 'M'
           });
+          
+          // Responsive canvas
+          canvas.style.maxWidth = '100%';
+          canvas.style.height = 'auto';
+          canvas.style.borderRadius = '8px';
+          canvas.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+          
           box.appendChild(canvas);
           document.getElementById('sample').textContent = text;
+          console.log('✅ QR generado con QRious');
           return;
         } catch (e) {
-          console.log('Error con QRious:', e);
+          console.log('❌ Error con QRious:', e);
         }
       }
 
-      // Método 2: API externa como fallback
-      try {
-        const img = document.createElement('img');
-        img.alt = 'QR Code';
-        img.width = 260;
-        img.height = 260;
-        img.style.border = '1px solid #e2e8f0';
-        img.style.borderRadius = '8px';
-        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(text)}&bgcolor=FFFFFF&color=000000&margin=10`;
-        
-        img.onload = function() {
-          console.log('QR generado exitosamente con API externa');
-          document.getElementById('sample').textContent = text;
-        };
-        
-        img.onerror = function() {
-          console.log('Error cargando QR desde API externa');
-          box.innerHTML = '<div style="color:#b91c1c; text-align:center; padding:20px;">❌ Error generando QR<br><small>Verifica tu conexión a internet</small></div>';
-        };
-        
-        box.appendChild(img);
-        return;
-      } catch (e) {
-        console.log('Error con API externa:', e);
+      // Método 2: qrcode.js (muy robusto)
+      if (window.QRCode && window.QRCode.toCanvas) {
+        try {
+          const canvas = document.createElement('canvas');
+          window.QRCode.toCanvas(canvas, text, {
+            width: qrSize,
+            margin: 2,
+            color: {
+              dark: '#000000',
+              light: '#FFFFFF'
+            },
+            errorCorrectionLevel: 'M'
+          }).then(() => {
+            canvas.style.maxWidth = '100%';
+            canvas.style.height = 'auto';
+            canvas.style.borderRadius = '8px';
+            canvas.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            
+            box.appendChild(canvas);
+            document.getElementById('sample').textContent = text;
+            console.log('✅ QR generado con qrcode.js');
+          }).catch(e => {
+            console.log('❌ Error con qrcode.js:', e);
+            tryKjua();
+          });
+          return;
+        } catch (e) {
+          console.log('❌ Error con qrcode.js:', e);
+        }
       }
 
-      // Si todo falla
-      box.innerHTML = '<div style="color:#b91c1c; text-align:center; padding:20px;">❌ Error generando QR<br><small>Verifica tu conexión a internet o prueba recargando la página</small></div>';
-      document.getElementById('sample').textContent = text || '—';
+      // Método 3: kjua (Canvas alternativo)
+      function tryKjua() {
+        if (window.kjua) {
+          try {
+            const canvas = window.kjua({
+              text: text,
+              size: qrSize,
+              fill: '#000000',
+              back: '#FFFFFF',
+              rounded: 10,
+              quiet: 2,
+              mode: 'plain',
+              mSize: 6,
+              mPosX: 50,
+              mPosY: 50
+            });
+            
+            canvas.style.maxWidth = '100%';
+            canvas.style.height = 'auto';
+            canvas.style.borderRadius = '8px';
+            canvas.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            
+            box.appendChild(canvas);
+            document.getElementById('sample').textContent = text;
+            console.log('✅ QR generado con kjua');
+            return;
+          } catch (e) {
+            console.log('❌ Error con kjua:', e);
+          }
+        }
+        tryExternalAPI();
+      }
+
+      // Método 4: API externa (funciona en todos lados)
+      function tryExternalAPI() {
+        try {
+          const img = document.createElement('img');
+          img.alt = 'Código QR para ' + text;
+          img.style.maxWidth = '100%';
+          img.style.height = 'auto';
+          img.style.border = '2px solid #e2e8f0';
+          img.style.borderRadius = '8px';
+          img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+          
+          // Múltiples APIs como respaldo
+          const apis = [
+            `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(text)}&bgcolor=FFFFFF&color=000000&margin=10`,
+            `https://chart.googleapis.com/chart?chs=${qrSize}x${qrSize}&cht=qr&chl=${encodeURIComponent(text)}`,
+            `https://quickchart.io/qr?text=${encodeURIComponent(text)}&size=${qrSize}`
+          ];
+          
+          let apiIndex = 0;
+          
+          function tryNextAPI() {
+            if (apiIndex >= apis.length) {
+              fallbackQR();
+              return;
+            }
+            
+            img.src = apis[apiIndex];
+            apiIndex++;
+          }
+          
+          img.onload = function() {
+            box.appendChild(img);
+            document.getElementById('sample').textContent = text;
+            console.log(`✅ QR generado con API externa (intento ${apiIndex})`);
+          };
+          
+          img.onerror = function() {
+            console.log(`❌ API ${apiIndex} falló, probando siguiente...`);
+            setTimeout(tryNextAPI, 500);
+          };
+          
+          tryNextAPI();
+          return;
+        } catch (e) {
+          console.log('❌ Error con APIs externas:', e);
+          fallbackQR();
+        }
+      }
+
+      // Método 5: Fallback textual (siempre funciona)
+      function fallbackQR() {
+        box.innerHTML = `
+          <div style="text-align:center; padding:20px; border:2px solid #e2e8f0; border-radius:8px; background:white;">
+            <div style="font-size:2rem; margin-bottom:10px;">📱</div>
+            <div style="font-weight:bold; margin-bottom:8px;">Código QR no disponible</div>
+            <div style="font-size:0.9rem; color:#666; margin-bottom:15px;">
+              Escanea este código manualmente:
+            </div>
+            <div style="font-family:monospace; font-size:1.2rem; font-weight:bold; background:#f1f5f9; padding:10px; border-radius:6px; word-break:break-all;">
+              ${text}
+            </div>
+            <div style="font-size:0.8rem; color:#888; margin-top:10px;">
+              O verifica tu conexión a internet
+            </div>
+          </div>
+        `;
+        document.getElementById('sample').textContent = text;
+        console.log('⚠️ Usando fallback textual');
+      }
+
+      // Iniciar con kjua si QRious no está disponible
+      if (!window.QRious) {
+        tryKjua();
+      }
     }
     function onGenerate(){
       const id = document.getElementById('prof').value || 'PROF_001';
