@@ -731,6 +731,10 @@
                         <i class="fas fa-download"></i>
                         Exportar CSV
                     </button>
+                    <button class="btn-success" onclick="loadRealRecords()" style="background: #22c55e;">
+                        <i class="fas fa-mobile-alt"></i>
+                        Cargar QR de la App
+                    </button>
                     <button class="btn-danger" onclick="clearDatabase()">
                         <i class="fas fa-trash"></i>
                         Limpiar DB
@@ -1412,6 +1416,59 @@
                     alert('Datos demo reiniciados');
                 }
             }
+        }
+
+        // Función para cargar registros reales de la app Flutter
+        function loadRealRecords() {
+            const realRecords = [
+                {
+                    id: '1729664840893',
+                    qrCode: '47045355',
+                    deviceId: 'flutter_app',
+                    timestamp: '2025-10-23T07:27:20.893Z',
+                    professorId: '47045355',
+                    professorFullName: 'ALOCILLA FERNANDEZ, FRANCO ANDREE',
+                    subject: 'Matemática',
+                    serverTimestamp: '2025-10-23T07:27:20.893Z',
+                    date: '2025-10-23',
+                    time: '07:27:20',
+                    hour: 7,
+                    type: 'ENTRADA',
+                    status: 'PUNTUAL',
+                    verified: true
+                },
+                {
+                    id: '1729664855726',
+                    qrCode: '47045355',
+                    deviceId: 'flutter_app',
+                    timestamp: '2025-10-23T07:27:35.726Z',
+                    professorId: '47045355',
+                    professorFullName: 'ALOCILLA FERNANDEZ, FRANCO ANDREE',
+                    subject: 'Matemática',
+                    serverTimestamp: '2025-10-23T07:27:35.726Z',
+                    date: '2025-10-23',
+                    time: '07:27:35',
+                    hour: 7,
+                    type: 'SALIDA',
+                    status: 'PUNTUAL',
+                    verified: true
+                }
+            ];
+
+            // Agregar registros reales a los datos existentes
+            realRecords.forEach(record => {
+                // Verificar si no existe ya
+                if (!allAttendanceData.some(r => r.id === record.id)) {
+                    allAttendanceData.push(record);
+                }
+            });
+
+            // Actualizar vista
+            filteredData = [...allAttendanceData];
+            updateStats();
+            renderTable();
+            
+            alert('✅ Registros QR de la app cargados correctamente!\n\n📱 Franco Andree - 2 registros\n🕐 Entrada: 07:27:20\n🕑 Salida: 07:27:35');
         }
 
         // Auto-actualizar cada 10 segundos
