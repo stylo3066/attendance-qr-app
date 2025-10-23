@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR de Prueba - Asistencia Profesores</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="/vendor/qrcode.min.js"></script>
+  <script src="/vendor/qrcodejs.min.js"></script>
+  <style>
+    :root{ --brand:#0f172a; --gold:#c5a351; }
+    body{ font-family:'Inter',system-ui,sans-serif; background:#f8fafc; margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+    .card{ background:#fff; border-radius:16px; box-shadow:0 20px 40px rgba(0,0,0,.08); padding:24px; width:min(560px, 92vw); }
+    h1{ font-size:1.25rem; margin:0 0 10px; color:var(--brand) }
+    p{ color:#475569; margin:0 0 16px }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 18px }
+    select,button{ padding:12px 14px; font-family:inherit; border-radius:10px; border:1px solid #e2e8f0; }
+    button{ background:linear-gradient(135deg,var(--gold),#e9d69a); color:#1e293b; font-weight:600; cursor:pointer; border:1px solid rgba(197,163,81,.45) }
+    .qrbox{ display:grid; place-items:center; border:1px dashed #cbd5e1; border-radius:12px; padding:18px; min-height:280px; }
+    small{ color:#64748b }
+    .badge{ background:#ecfeff; color:#0369a1; border:1px solid #bae6fd; padding:2px 8px; border-radius:999px; font-size:.8rem }
+  </style>
+  <script>
+    const api = `${window.location.origin}/api`;
+    async function loadProfessors(){
+      const sel = document.getElementById('prof');
+      try{
+        const res = await fetch(`${api}/professors`);
+        const list = await res.json();
+        sel.innerHTML = list.map(p=>`<option value="${p.id}">${p.id} — ${p.nombre} ${p.apellido} (${p.materia})</option>`).join('');
+        if(list.length){ renderQR(list[0].id); }
+      }catch(e){
+        sel.innerHTML = '<option>ERROR cargando profesores</option>';
+        console.error('Error cargando profesores', e);
+      }
+    }
+    async function renderQR(text){
+      const box = document.getElementById('qr');
+      box.innerHTML = '';
+      // Intento A: servidor genera PNG (más robusto)
+      try {
+        const img = document.createElement('img');
+        img.alt = 'QR';
+        img.width = 260;
+        img.height = 260;
+        img.src = `${api}/qr?text=${encodeURIComponent(text)}`;
+        const ok = await new Promise((resolve) => {
+          img.onload = () => resolve(true);
+          img.onerror = () => resolve(false);
+          setTimeout(() => resolve(false), 3000);
+        });
+        if (ok) {
+          box.appendChild(img);
+        }
+      } catch {}
+
+      // Intento B: API QRCode.toCanvas (paquete qrcode)
+      if (!box.firstChild && window.QRCode && typeof window.QRCode.toCanvas === 'function') {
+        const canvas = document.createElement('canvas');
+        try {
+          await window.QRCode.toCanvas(canvas, text, { width: 260, margin: 2 });
+          box.appendChild(canvas);
+        } catch {}
+      }
+
+      // Intento C: qrcodejs (constructor)
+      if (!box.firstChild && typeof window.QRCode === 'function') {
+        try {
+          new window.QRCode(box, { text, width: 260, height: 260 });
+        } catch {}
+      }
+
+      if (!box.firstChild) {
+        box.innerHTML = '<div style="color:#b91c1c">Error generando QR. Revisa la conexión y vuelve a intentar.</div>';
+      }
+      document.getElementById('sample').textContent = text;
+    }
+    function onGenerate(){
+      const id = document.getElementById('prof').value || 'PROF_001';
+      renderQR(id);
+    }
+    window.addEventListener('load', loadProfessors);
+  </script>
+  </head>
+<body>
+  <div class="card">
+    <h1>QR de Prueba – Asistencia</h1>
+    <p>Selecciona un profesor y escanea el QR con la app móvil para registrar asistencia. <span class="badge">Texto QR = ID del profesor</span></p>
+    <div class="row">
+      <select id="prof" style="flex:1"></select>
+      <button onclick="onGenerate()">Generar QR</button>
+    </div>
+    <div class="qrbox" id="qr"></div>
+    <p style="margin-top:10px"><small>Contenido del QR: <strong id="sample">—</strong></small></p>
+  </div>
+</body>
+</html>
