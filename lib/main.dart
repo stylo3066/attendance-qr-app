@@ -205,11 +205,11 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
                     decoration: BoxDecoration(
                       color: (functionUrl.isNotEmpty && hmacSecret.isNotEmpty)
                           ? Colors.green[50]
-                          : Colors.orange[50],
+                          : Colors.blue[50],
                       border: Border.all(
                         color: (functionUrl.isNotEmpty && hmacSecret.isNotEmpty)
                             ? Colors.green
-                            : Colors.orange,
+                            : Colors.blue,
                       ),
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -218,21 +218,23 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
                       children: [
                         Text(
                           (functionUrl.isNotEmpty && hmacSecret.isNotEmpty)
-                              ? 'Estado conexión: Configurada'
-                              : 'Estado conexión: Sin configurar',
+                              ? '✅ Modo: Con servidor'
+                              : '📱 Modo: Offline/Demo (funcional)',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: (functionUrl.isNotEmpty &&
                                     hmacSecret.isNotEmpty)
                                 ? Colors.green
-                                : Colors.orange,
+                                : Colors.blue,
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Text('FUNCTION_URL: ' +
-                            (functionUrl.isEmpty ? '—' : functionUrl)),
-                        Text('HMAC_SECRET: ' +
-                            (hmacSecret.isEmpty ? '—' : '••••')),
+                        Text(
+                          (functionUrl.isEmpty)
+                              ? 'Los registros se guardan localmente en tu dispositivo. ¡Funciona sin internet!'
+                              : 'URL: ${functionUrl}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
                       ],
                     ),
                   ),
@@ -468,12 +470,7 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
     // Intentar enviar al servidor en segundo plano
     _sendToServer(record);
 
-    // Mostrar mensaje de éxito
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profesor registrado correctamente')),
-      );
-    }
+    // El mensaje de éxito lo muestra _sendToServer según el modo
   }
 
   Future<void> _saveAttendanceRecord(Map<String, dynamic> record) async {
@@ -675,12 +672,24 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
   }
 
   Future<void> _sendToServer(Map<String, dynamic> record) async {
+    // MODO DEMO/OFFLINE: Funciona sin servidor, solo guarda localmente
+    // Si quieres sincronizar con un servidor, configura FUNCTION_URL en Ajustes
+
     if (functionUrl.isEmpty || hmacSecret.isEmpty) {
-      // Si no está configurado, encolar y salir
-      await _enqueuePending(record);
+      // Modo offline: registro guardado localmente, mostrar éxito
+      debugPrint('✅ Modo offline: registro guardado localmente');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Asistencia registrada (modo offline)'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
       return;
     }
 
+    // Intentar sincronizar con servidor si está configurado
     final signature = _signRecord(record);
     try {
       final resp = await http
@@ -690,25 +699,38 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
           .timeout(const Duration(seconds: 10));
 
       if (resp.statusCode == 200) {
-        debugPrint('Registro sincronizado OK');
+        debugPrint('Registro sincronizado OK con servidor');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Asistencia sincronizada con servidor'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       } else {
         debugPrint('Fallo al sincronizar (${resp.statusCode}): ${resp.body}');
+        // Guardado localmente de todos modos
         if (mounted) {
-          final msg = resp.statusCode == 401
-              ? 'Secreto HMAC inválido (401). Revisa HMAC_SECRET.'
-              : resp.statusCode == 404
-                  ? 'QR no reconocido (404). Usa un QR de /test-qr.'
-                  : 'Error ${resp.statusCode} al sincronizar';
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(msg)));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  Text('⚠️ Guardado localmente (servidor: ${resp.statusCode})'),
+              backgroundColor: Colors.orange,
+            ),
+          );
         }
         await _enqueuePending(record);
       }
     } catch (e) {
       debugPrint('Error de red: $e');
+      // Guardado localmente de todos modos
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sin conexión con el servidor')),
+          const SnackBar(
+            content: Text('✅ Guardado localmente (sin conexión a servidor)'),
+            backgroundColor: Colors.orange,
+          ),
         );
       }
       await _enqueuePending(record);
