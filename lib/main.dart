@@ -501,25 +501,21 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // URL del servidor local en tu red WiFi
+      // FORZAR configuración automática SIEMPRE
       const defaultBackendUrl = 'http://192.168.100.7:3000/api/attendance';
       const defaultSecret = 'dev_secret';
 
+      // SOBRESCRIBIR cualquier configuración anterior
+      await prefs.setString('FUNCTION_URL', defaultBackendUrl);
+      await prefs.setString('HMAC_SECRET', defaultSecret);
+
       setState(() {
-        functionUrl = prefs.getString('FUNCTION_URL') ?? defaultBackendUrl;
-        hmacSecret = prefs.getString('HMAC_SECRET') ?? defaultSecret;
+        functionUrl = defaultBackendUrl;
+        hmacSecret = defaultSecret;
       });
 
-      // Guardar valores por defecto si no existen
-      if (!prefs.containsKey('FUNCTION_URL')) {
-        await prefs.setString('FUNCTION_URL', defaultBackendUrl);
-      }
-      if (!prefs.containsKey('HMAC_SECRET')) {
-        await prefs.setString('HMAC_SECRET', defaultSecret);
-      }
-
-      debugPrint('✅ Configuración cargada: Backend online listo');
-      debugPrint('   URL: $functionUrl');
+      debugPrint('✅ AUTO-CONFIGURADO: http://192.168.100.7:3000');
+      debugPrint('   Secreto: dev_secret');
 
       // Tras cargar configuración, intentar sincronizar pendientes si aplica
       if (functionUrl.isNotEmpty && hmacSecret.isNotEmpty) {
