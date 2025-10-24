@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -621,7 +621,7 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
     }
     
       // CÓDIGO ANTERIOR COMENTADO
-      /*
+      
       // PRIORIZAR SERVIDOR LOCAL SIEMPRE PRIMERO
       debugPrint('🔍 Buscando servidor local primero...');
 
@@ -1044,5 +1044,5 @@ class _AttendanceHomePageState extends State<AttendanceHomePage> {
       }
     }
   }
-  */
+  
 }
