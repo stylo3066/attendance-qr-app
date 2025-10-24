@@ -1,0 +1,25 @@
+{
+  "attendance_events": [
+    {
+      "id": "1761275787434",
+      "qrCode": "47045355",
+      "user": "Usuario Demo",
+      "timestamp": "2025-10-23T22:16:28.389428",
+      "deviceId": "flutter_app",
+      "professorId": "47045355",
+      "professorName": "FRANCO ANDREE",
+      "professorLastName": "ALOCILLA FERNANDEZ",
+      "professorFullName": "FRANCO ANDREE ALOCILLA FERNANDEZ",
+      "subject": "Matemática",
+      "email": "franco.alocilla@institucion.edu",
+      "verified": true,
+      "serverTimestamp": "2025-10-24T03:16:27.434Z",
+      "date": "2025-10-24",
+      "time": "22:16:27",
+      "hour": 22,
+      "minute": 16,
+      "dayOfWeek": "jueves",
+      "readableDateTime": "23/10/2025, 22:16:27"
+    }
+  ]
+}
