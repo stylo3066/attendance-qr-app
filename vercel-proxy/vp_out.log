@@ -1,0 +1,35 @@
+
+🚀 Servidor proxy corriendo en tu red WiFi!
+
+📱 Usa desde tablets/móviles:
+   http://192.168.100.7:3001/api/attendance
+
+💻 Usa desde esta PC:
+   http://localhost:3001/api/attendance
+
+🔍 Ver registros: GET http://192.168.100.7:3001/api/attendance
+🧹 Limpiar DB: DELETE http://192.168.100.7:3001/api/attendance
+🔐 HMAC Secret: dev_secret
+
+📋 Para Flutter app usa:
+   FUNCTION_URL=http://192.168.100.7:3001/api/attendance
+
+🌐 Asegúrate que el Firewall de Windows permita el puerto 3001
+📥 Received request: {
+  signature: '8a7b1721cefe2003e3e6689c71f7c902e011c78c255710097948a66ccdaeccb3',
+  data: {
+    timestamp: '2025-10-24T23:03:30.982Z',
+    deviceId: 'device123',
+    qrCode: '47045355'
+  }
+}
+🔐 HMAC verification:
+  Message: 47045355|device123|2025-10-24T23:03:30.982Z
+  Expected: 8a7b1721cefe2003e3e6689c71f7c902e011c78c255710097948a66ccdaeccb3
+  Received: 8a7b1721cefe2003e3e6689c71f7c902e011c78c255710097948a66ccdaeccb3
+📊 Dashboard data exported: 4 records
+✅ Event saved: {
+  professor: 'FRANCO ANDREE ALOCILLA FERNANDEZ',
+  subject: 'Matemática',
+  time: '24/10/2025, 18:03:44'
+}

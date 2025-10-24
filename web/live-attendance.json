@@ -1,1 +1,66 @@
-[]
+[
+  {
+    "id": "1761275787434",
+    "qrCode": "47045355",
+    "deviceId": "flutter_app",
+    "timestamp": "2025-10-23T22:16:28.389428",
+    "professorId": "47045355",
+    "professorFullName": "FRANCO ANDREE ALOCILLA FERNANDEZ",
+    "subject": "Matemática",
+    "serverTimestamp": "2025-10-24T03:16:27.434Z",
+    "date": "2025-10-24",
+    "time": "22:16:27",
+    "hour": 22,
+    "type": "ENTRADA",
+    "status": "PUNTUAL",
+    "verified": true
+  },
+  {
+    "id": "1761346699366",
+    "qrCode": "47045355",
+    "deviceId": "test-endpoint",
+    "timestamp": "2025-10-24T22:58:19.366Z",
+    "professorId": "47045355",
+    "professorFullName": "FRANCO ANDREE ALOCILLA FERNANDEZ",
+    "subject": "Matemática",
+    "serverTimestamp": "2025-10-24T22:58:19.366Z",
+    "date": "2025-10-24",
+    "time": "17:58:19",
+    "hour": 17,
+    "type": "ENTRADA",
+    "status": "PUNTUAL",
+    "verified": true
+  },
+  {
+    "id": "1761346849835",
+    "qrCode": "47045355",
+    "deviceId": "device123",
+    "timestamp": "2025-10-24T23:00:34.163Z",
+    "professorId": "47045355",
+    "professorFullName": "FRANCO ANDREE ALOCILLA FERNANDEZ",
+    "subject": "Matemática",
+    "serverTimestamp": "2025-10-24T23:00:49.835Z",
+    "date": "2025-10-24",
+    "time": "18:00:49",
+    "hour": 18,
+    "type": "ENTRADA",
+    "status": "PUNTUAL",
+    "verified": true
+  },
+  {
+    "id": "1761347024155",
+    "qrCode": "47045355",
+    "deviceId": "device123",
+    "timestamp": "2025-10-24T23:03:30.982Z",
+    "professorId": "47045355",
+    "professorFullName": "FRANCO ANDREE ALOCILLA FERNANDEZ",
+    "subject": "Matemática",
+    "serverTimestamp": "2025-10-24T23:03:44.155Z",
+    "date": "2025-10-24",
+    "time": "18:03:44",
+    "hour": 18,
+    "type": "SALIDA",
+    "status": "PUNTUAL",
+    "verified": true
+  }
+]

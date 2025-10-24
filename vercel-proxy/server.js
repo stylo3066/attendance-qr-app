@@ -40,22 +40,33 @@ function writeDB(data) {
   const webFile = path.join(__dirname, '..', 'web', 'live-attendance.json');
   
   // Convertir datos a formato compatible con dashboard
-  const dashboardData = data.attendance_events.map(event => ({
-    id: event.id,
-    qrCode: event.data.qrCode,
-    deviceId: event.data.deviceId,
-    timestamp: event.data.timestamp,
-    professorId: event.data.qrCode,
-    professorFullName: event.professor_name,
-    subject: event.subject,
-    serverTimestamp: event.serverTimestamp,
-    date: new Date(event.serverTimestamp).toISOString().split('T')[0],
-    time: new Date(event.serverTimestamp).toTimeString().split(' ')[0],
-    hour: new Date(event.serverTimestamp).getHours(),
-    type: Math.random() > 0.5 ? 'ENTRADA' : 'SALIDA',
-    status: 'PUNTUAL',
-    verified: true
-  }));
+  // Manejar posibles formas distintas de eventos (algunos endpoints guardan event.data, otros guardan campos al top-level)
+  const dashboardData = data.attendance_events.map(event => {
+    const d = event.data || {};
+    const qrCode = d.qrCode || event.qrCode || event.professorId || '';
+    const deviceId = d.deviceId || event.deviceId || '';
+    const timestamp = d.timestamp || event.timestamp || event.serverTimestamp || '';
+    const professorFullName = event.professorFullName || (event.professorName && event.professorLastName ? `${event.professorName} ${event.professorLastName}` : event.professor_name) || '';
+    const subject = event.subject || '';
+    const serverTimestamp = event.serverTimestamp || timestamp || new Date().toISOString();
+
+    return {
+      id: event.id,
+      qrCode: qrCode,
+      deviceId: deviceId,
+      timestamp: timestamp,
+      professorId: qrCode,
+      professorFullName: professorFullName,
+      subject: subject,
+      serverTimestamp: serverTimestamp,
+      date: new Date(serverTimestamp).toISOString().split('T')[0],
+      time: new Date(serverTimestamp).toTimeString().split(' ')[0],
+      hour: new Date(serverTimestamp).getHours(),
+      type: Math.random() > 0.5 ? 'ENTRADA' : 'SALIDA',
+      status: 'PUNTUAL',
+      verified: true
+    };
+  });
   
   try {
     fs.writeFileSync(webFile, JSON.stringify(dashboardData, null, 2));
