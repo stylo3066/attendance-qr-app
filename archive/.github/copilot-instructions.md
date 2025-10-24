@@ -1,0 +1,8 @@
+- [x] Clarify Project Requirements: Crear app móvil Flutter para control de asistencia de profesores mediante QR.
+- [x] Scaffold the Project: Estructura inicial creada con dependencias y archivos principales.
+- [ ] Customize the Project: Pendiente de agregar lógica avanzada de registro y almacenamiento.
+- [ ] Install Required Extensions: No se requieren extensiones adicionales.
+- [ ] Compile the Project: Pendiente de instalar dependencias y compilar.
+- [ ] Create and Run Task: Pendiente de crear tarea de ejecución.
+- [ ] Launch the Project: Pendiente de lanzar en emulador/dispositivo.
+- [x] Ensure Documentation is Complete: README.md creado y actualizado.

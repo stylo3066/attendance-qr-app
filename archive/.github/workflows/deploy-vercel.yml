@@ -1,0 +1,58 @@
+name: Deploy vercel-proxy to Vercel
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'attendance_qr/vercel-proxy/**'
+      - 'attendance_qr/.github/workflows/deploy-vercel.yml'
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: attendance_qr/vercel-proxy
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      # Nota importante:
+      # 1) Crea los secretos del repositorio:
+      #    - VERCEL_TOKEN: token personal de Vercel
+      #    - VERCEL_ORG_ID: ID de la organización Vercel
+      #    - VERCEL_PROJECT_ID: ID del proyecto Vercel
+      # 2) Configura en el dashboard de Vercel las variables:
+      #    - HMAC_SECRET (ej: dev_secret o un secreto fuerte)
+      #    - FIREBASE_SERVICE_ACCOUNT_JSON (contenido JSON de la cuenta de servicio)
+      # 3) El endpoint quedará en: https://<tu-proyecto>.vercel.app/api/attendance
+      #    y la prueba de salud en: https://<tu-proyecto>.vercel.app/api/health
